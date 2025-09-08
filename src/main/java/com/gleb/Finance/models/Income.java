@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "incomes")
 public class Income {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,33 +20,35 @@ public class Income {
     @JoinColumn(name = "wallet_id", nullable = false)
     private Wallet wallet;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
-
-    @Column(name = "amount", nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "description", length = 255)
+    @Column(nullable = false, length = 100)
+    private String category;
+
+    @Column(length = 255)
     private String description;
 
-    @Column(name = "transaction_date", nullable = false)
-    private LocalDate transactionDate;
+    @Column(name = "income_date", nullable = false)
+    private LocalDate incomeDate;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     // Конструкторы
-    public Income() {}
+    public Income() {
+        this.createdAt = LocalDateTime.now();
+        this.incomeDate = LocalDate.now();
+    }
 
-    public Income(User user, Wallet wallet, Category category, BigDecimal amount,
-                  LocalDate transactionDate, String description) {
+    public Income(User user, Wallet wallet, BigDecimal amount, String category, String description, LocalDate incomeDate) {
+        this();
         this.user = user;
         this.wallet = wallet;
-        this.category = category;
         this.amount = amount;
-        this.transactionDate = transactionDate;
+        this.category = category;
         this.description = description;
+        this.incomeDate = incomeDate;
     }
 
     // Геттеры и сеттеры
@@ -60,17 +61,17 @@ public class Income {
     public Wallet getWallet() { return wallet; }
     public void setWallet(Wallet wallet) { this.wallet = wallet; }
 
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
-
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public LocalDate getTransactionDate() { return transactionDate; }
-    public void setTransactionDate(LocalDate transactionDate) { this.transactionDate = transactionDate; }
+    public LocalDate getIncomeDate() { return incomeDate; }
+    public void setIncomeDate(LocalDate incomeDate) { this.incomeDate = incomeDate; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
