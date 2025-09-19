@@ -11,17 +11,16 @@ public class FinancialDashboardDto {
 
     private List<WalletBalanceDto> walletBalanceDtoList;
 
-    private List<RecentTransactionDto> recentTransactionDtoList;
+//    private List<RecentTransactionDto> recentTransactionDtoList;
 
     public FinancialDashboardDto() {}
 
     public FinancialDashboardDto(List<ExpenseDto> expenseDtoList, List<IncomeDto> incomeDtoList,
-                                 List<WalletBalanceDto> walletBalanceDtoList,
-                                 List<RecentTransactionDto> recentTransactionDtoList) {
+                                 List<WalletBalanceDto> walletBalanceDtoList) {
         this.expenseDtoList = expenseDtoList;
         this.incomeDtoList = incomeDtoList;
         this.walletBalanceDtoList = walletBalanceDtoList;
-        this.recentTransactionDtoList = recentTransactionDtoList;
+//        this.recentTransactionDtoList = recentTransactionDtoList;
     }
 
     public List<ExpenseDto> getExpenseDtoList() {
@@ -48,11 +47,11 @@ public class FinancialDashboardDto {
         this.walletBalanceDtoList = walletBalanceDtoList;
     }
 
-    public List<RecentTransactionDto> getRecentTransactionDtoList() {
-        return recentTransactionDtoList;
-    }
-
-    public void setRecentTransactionDtoList(List<RecentTransactionDto> recentTransactionDtoList) {
-        this.recentTransactionDtoList = recentTransactionDtoList;
-    }
+//    public List<RecentTransactionDto> getRecentTransactionDtoList() {
+//        return recentTransactionDtoList;
+//    }
+//
+//    public void setRecentTransactionDtoList(List<RecentTransactionDto> recentTransactionDtoList) {
+//        this.recentTransactionDtoList = recentTransactionDtoList;
+//    }
 }

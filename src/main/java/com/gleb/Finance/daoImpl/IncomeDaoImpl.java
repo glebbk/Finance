@@ -1,48 +1,46 @@
-package com.gleb.Finance.dao;
+package com.gleb.Finance.daoImpl;
 
+import com.gleb.Finance.dao.IncomeDao;
 import com.gleb.Finance.models.Income;
 import com.gleb.Finance.models.User;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-import javax.management.Query;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public class UserDao {
+public class IncomeDaoImpl implements IncomeDao {
 
     private final SessionFactory sessionFactory;
 
-    public UserDao(SessionFactory sessionFactory) {
+    public IncomeDaoImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
-    public User create (User user) {
+    @Override
+    public List<Income> getAllIncomes(long id) {
         Session session = sessionFactory.openSession();
         Transaction transaction = null;
         try {
             transaction = session.beginTransaction();
-            session.persist(user);
+            User user = session.get(User.class, id);
+
+            List<Income> incomeList = List.of();
+
+            if(user != null) {
+                incomeList = user.getIncomes();
+                Hibernate.initialize(incomeList);
+            }
+
             transaction.commit();
-            return user;
+            return incomeList;
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            throw new RuntimeException("Error creating user", e);
-        } finally {
-            session.close();
-        }
-    }
-
-    public Optional<User> findById(int id) {
-        Session session = sessionFactory.getCurrentSession();
-        try {
-            User user = session.get(User.class, id);
-            return Optional.ofNullable(user);
-        }catch (Exception e) {
-            throw new RuntimeException("Error finding user by id", e);
+            throw new RuntimeException("Error get Income list", e);
         } finally {
             session.close();
         }
