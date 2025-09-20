@@ -3,10 +3,7 @@ package com.gleb.Finance.controllers;
 import com.gleb.Finance.dto.FinancialDashboardDto;
 import com.gleb.Finance.services.DashBoardService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +21,9 @@ public class DashboardController {
         this.dashBoardService = dashBoardService;
     }
 
-    @GetMapping
+    @GetMapping("/{userId}")
     public ResponseEntity<FinancialDashboardDto> getDashboard(
-            @RequestParam(name = "id", defaultValue = "1") Long userId) {
+            @PathVariable Long userId) {
 
         logger.info("Getting dashboard for user id: {}", userId);
         FinancialDashboardDto dashboard = dashBoardService.getFinanceDashboard(userId);

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовый Центр</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .positive {
+            border-left: 4px solid #27ae60;
+        }
+
+        .negative {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .list {
+            margin: 10px 0;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Стили для формы */
+        .user-form {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .user-form input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .user-form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user-form button:hover {
+            background: #2980b9;
+        }
+
+        .current-user {
+            text-align: center;
+            margin: 10px 0;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+<h1>Финансовый Центр</h1>
+
+<!-- ФОРМА ДЛЯ ВВОДА ID -->
+<div class="user-form">
+    <input type="number" id="userIdInput" placeholder="Введите ID пользователя" value="1" min="1">
+    <button onclick="loadUserData()">Загрузить данные</button>
+</div>
+
+<div id="currentUser" class="current-user"></div>
+
+<div id="loading" class="loading">Загрузка данных...</div>
+
+<div id="content" style="display: none;">
+    <!-- Баланс по счетам -->
+    <div class="section">
+        <h2>Баланс по счетам</h2>
+        <div id="wallets" class="cards"></div>
+    </div>
+
+    <div style="display: flex; gap: 20px;">
+        <!-- Расходы -->
+        <div class="section" style="flex: 1;">
+            <h2>Расходы по категориям</h2>
+            <div id="expenses" class="list"></div>
+        </div>
+
+        <!-- Доходы -->
+        <div class="section" style="flex: 1;">
+            <h2>Доходы по категориям</h2>
+            <div id="incomes" class="list"></div>
+        </div>
+    </div>
+</div>
+
+<div id="error" class="error" style="display: none;"></div>
+
+<script>
+    let currentUserId = 1;
+
+    // Функция для форматирования денег
+    function formatMoney(amount) {
+        return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB'
+        }).format(amount);
+    }
+
+    // Загрузка данных с сервера
+    async function loadDashboard(userId) {
+        try {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            const response = await fetch(`http://localhost:8080/api/dashboard/${userId}`);
+
+            if (!response.ok) {
+                throw new Error('Ошибка сервера: ' + response.status);
+            }
+
+            const data = await response.json();
+            displayData(data, userId);
+
+        } catch (error) {
+            showError('Ошибка загрузки: ' + error.message);
+        }
+    }
+
+    // Загрузка данных по кнопке
+    function loadUserData() {
+        const userId = document.getElementById('userIdInput').value;
+        if (userId && userId > 0) {
+            currentUserId = parseInt(userId);
+            loadDashboard(currentUserId);
+        }
+    }
+
+    // Отображение данных
+    function displayData(data, userId) {
+        // Скрываем загрузку, показываем контент
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+
+        // Показываем текущего пользователя
+        document.getElementById('currentUser').textContent = `Данные пользователя #${userId}`;
+
+        // Очищаем предыдущие данные
+        document.getElementById('wallets').innerHTML = '';
+        document.getElementById('expenses').innerHTML = '';
+        document.getElementById('incomes').innerHTML = '';
+
+        // Баланс по счетам
+        const walletsContainer = document.getElementById('wallets');
+        data.walletBalanceDtoList.forEach(wallet => {
+            const card = document.createElement('div');
+            card.className = `card ${wallet.balance < 0 ? 'negative' : 'positive'}`;
+            card.innerHTML = `
+                    <h3>${wallet.name}</h3>
+                    <div class="amount">${formatMoney(wallet.balance)}</div>
+                `;
+            walletsContainer.appendChild(card);
+        });
+
+        // Расходы
+        const expensesContainer = document.getElementById('expenses');
+        data.expenseDtoList.forEach(expense => {
+            const item = document.createElement('div');
+            item.className = 'list-item negative';
+            item.innerHTML = `
+                    <span>${expense.name}</span>
+                    <span class="amount">${formatMoney(expense.amount)}</span>
+                `;
+            expensesContainer.appendChild(item);
+        });
+
+        // Доходы
+        const incomesContainer = document.getElementById('incomes');
+        data.incomeDtoList.forEach(income => {
+            const item = document.createElement('div');
+            item.className = 'list-item positive';
+            item.innerHTML = `
+                    <span>${income.name}</span>
+                    <span class="amount">${formatMoney(income.amount)}</span>
+                `;
+            incomesContainer.appendChild(item);
+        });
+    }
+
+    // Показать ошибку
+    function showError(message) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').textContent = message;
+    }
+
+    // Загружаем данные при загрузке страницы (по умолчанию ID=1)
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboard(currentUserId);
+
+        // Обработка нажатия Enter в поле ввода
+        document.getElementById('userIdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadUserData();
+            }
+        });
+    });
+</script>
+</body>
+</html>
