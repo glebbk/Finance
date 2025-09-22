@@ -3,10 +3,7 @@ package com.gleb.Finance.services;
 import com.gleb.Finance.daoImpl.ExpenseDaoImpl;
 import com.gleb.Finance.daoImpl.IncomeDaoImpl;
 import com.gleb.Finance.daoImpl.WalletDaoImpl;
-import com.gleb.Finance.dto.ExpenseDto;
-import com.gleb.Finance.dto.FinancialDashboardDto;
-import com.gleb.Finance.dto.IncomeDto;
-import com.gleb.Finance.dto.WalletBalanceDto;
+import com.gleb.Finance.dto.*;
 import com.gleb.Finance.mapper.ExpenseMapper;
 import com.gleb.Finance.mapper.IncomeMapper;
 import com.gleb.Finance.mapper.WalletMapper;
@@ -41,5 +38,20 @@ public class DashBoardService {
                 incomeDtoList,
                 walletBalanceDtoList
         );
+    }
+
+    public WalletsPageDto getWallets(long id) {
+        List<WalletBalanceDto> walletBalanceDtoList = WalletMapper.toDtoList(walletDao.getWallets(id));
+        return new WalletsPageDto(walletBalanceDtoList);
+    }
+
+    public ExpensePageDto getExpenses(long id) {
+        List<ExpenseDto> expenseDtoList = ExpenseMapper.toDtoList(expenseDao.getAllExpense(id));
+        return new ExpensePageDto(expenseDtoList);
+    }
+
+    public IncomePageDto getIncomes(long id) {
+        List<IncomeDto> incomeDtoList = IncomeMapper.toDtoList(incomeDao.getAllIncomes(id));
+        return new IncomePageDto(incomeDtoList);
     }
 }
