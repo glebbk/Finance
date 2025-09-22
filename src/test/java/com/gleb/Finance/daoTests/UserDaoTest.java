@@ -1,4 +1,4 @@
-package com.gleb.Finance.dtoTets;
+package com.gleb.Finance.daoTests;
 
 import com.gleb.Finance.models.User;
 import org.hibernate.Session;
