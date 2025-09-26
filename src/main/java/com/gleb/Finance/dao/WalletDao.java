@@ -5,5 +5,5 @@ import com.gleb.Finance.models.Wallet;
 import java.util.List;
 
 public interface WalletDao {
-    List<Wallet> getWallets(long id);
+    List<Wallet> getAllWallets(long id);
 }

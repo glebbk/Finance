@@ -31,7 +31,7 @@ public class DashBoardService {
 
         List<IncomeDto> incomeDtoList = IncomeMapper.toDtoList(incomeDao.getAllIncomes(id));
 
-        List<WalletBalanceDto> walletBalanceDtoList = WalletMapper.toDtoList(walletDao.getWallets(id));
+        List<WalletBalanceDto> walletBalanceDtoList = WalletMapper.toDtoList(walletDao.getAllWallets(id));
 
         return new FinancialDashboardDto(
                 expenseDtoList,
@@ -41,7 +41,7 @@ public class DashBoardService {
     }
 
     public WalletsPageDto getWallets(long id) {
-        List<WalletBalanceDto> walletBalanceDtoList = WalletMapper.toDtoList(walletDao.getWallets(id));
+        List<WalletBalanceDto> walletBalanceDtoList = WalletMapper.toDtoList(walletDao.getAllWallets(id));
         return new WalletsPageDto(walletBalanceDtoList);
     }
 

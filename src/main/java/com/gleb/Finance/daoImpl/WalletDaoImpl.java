@@ -8,8 +8,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -23,21 +23,23 @@ public class WalletDaoImpl implements WalletDao {
 
 
     @Override
-    public List<Wallet> getWallets(long id) {
+    public List<Wallet> getAllWallets(long id) {
         Session session = sessionFactory.openSession();
         Transaction transaction = null;
         try {
             transaction = session.beginTransaction();
 
             User user = session.get(User.class, id);
-            List<Wallet> walletList = List.of();
+            List<Wallet> walletList = Collections.emptyList();
 
-            if(user != null) {
+            if(user != null && user.getWallets() != null) {
                 walletList = user.getWallets();
                 Hibernate.initialize(walletList);
             }
 
-            transaction.commit();
+            if(transaction != null) {
+                transaction.commit();
+            }
 
             return walletList;
         } catch (Exception e) {

@@ -31,12 +31,14 @@ public class IncomeDaoImpl implements IncomeDao {
 
             List<Income> incomeList = List.of();
 
-            if(user != null) {
+            if(user != null && user.getIncomes() != null) {
                 incomeList = user.getIncomes();
                 Hibernate.initialize(incomeList);
             }
 
-            transaction.commit();
+            if(transaction != null) {
+                transaction.commit();
+            }
             return incomeList;
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
