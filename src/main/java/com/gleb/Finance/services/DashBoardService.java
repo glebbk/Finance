@@ -8,6 +8,7 @@ import com.gleb.Finance.mapper.WalletMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,12 +24,30 @@ public class DashBoardService {
 
     private final TransactionDaoImpl transactionDao;
 
-    public DashBoardService(ExpenseDaoImpl expenseDao, IncomeDaoImpl incomeDao, WalletDaoImpl walletDao, UserDaoImpl userDao, TransactionDaoImpl transactionDao) {
+    private final SavingGoalDaoImpl savingGoalDao;
+
+    private final WalletBalanceHistoryDaoImpl walletBalanceHistoryDao;
+
+    public DashBoardService(ExpenseDaoImpl expenseDao, IncomeDaoImpl incomeDao, WalletDaoImpl walletDao, UserDaoImpl userDao, TransactionDaoImpl transactionDao, SavingGoalDaoImpl savingGoalDao, WalletBalanceHistoryDaoImpl walletBalanceHistoryDao) {
         this.expenseDao = expenseDao;
         this.incomeDao = incomeDao;
         this.walletDao = walletDao;
         this.userDao = userDao;
         this.transactionDao = transactionDao;
+        this.savingGoalDao = savingGoalDao;
+        this.walletBalanceHistoryDao = walletBalanceHistoryDao;
+    }
+
+    public FinancialSummaryDto getFinancialSummaryDto(long id) {
+        BigDecimal currentTotalBalance = walletDao.getTotalAvailableBalance(id);
+
+        BigDecimal balanceChange = calculateBalanceChange(id, currentTotalBalance);
+
+        BigDecimal balanceChangePercent = calculateChangeBalancePercent(id, currentTotalBalance);
+
+        BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
+
+        return new FinancialSummaryDto();
     }
 
     public FinancialDashboardDto getFinanceDashboard(long id) {
@@ -76,5 +95,44 @@ public class DashBoardService {
     public IncomePageDto getIncomes(long id) {
         List<IncomeDto> incomeDtoList = IncomeMapper.toDtoList(incomeDao.getAllIncomes(id));
         return new IncomePageDto(incomeDtoList);
+    }
+
+    private BigDecimal calculateBalanceChange(long userId, BigDecimal currentTotalBalance) {
+        LocalDate lastMonthDate = LocalDate.now().withDayOfMonth(1);
+        BigDecimal lastMonthBalance = walletBalanceHistoryDao.getTotalAvailableBalanceByIdAndDate(userId, lastMonthDate);
+
+        return currentTotalBalance.subtract(lastMonthBalance);
+    }
+
+    private BigDecimal calculateChangeBalancePercent(long userId, BigDecimal currentBalance) {
+        LocalDate lastMonthDate = LocalDate.now().withDayOfMonth(1);
+        BigDecimal lastMonthBalance = walletBalanceHistoryDao.getTotalAvailableBalanceByIdAndDate(userId, lastMonthDate);
+
+        // Проверка на null и нулевые значения
+        if (lastMonthBalance == null || currentBalance == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был нулевой баланс, а сейчас есть - считаем как +100%
+        if (lastMonthBalance.compareTo(BigDecimal.ZERO) == 0 && currentBalance.compareTo(BigDecimal.ZERO) > 0) {
+            return BigDecimal.valueOf(100);
+        }
+
+        // Если в прошлом месяце был нулевой баланс, а сейчас тоже ноль - 0%
+        if (lastMonthBalance.compareTo(BigDecimal.ZERO) == 0 && currentBalance.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был баланс, а сейчас ноль - считаем как -100%
+        if (lastMonthBalance.compareTo(BigDecimal.ZERO) > 0 && currentBalance.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.valueOf(100);
+        }
+
+        // Основная формула: ((текущий - прошлый) / прошлый) * 100
+        BigDecimal difference = currentBalance.subtract(lastMonthBalance);
+        BigDecimal percentChange = difference.divide(lastMonthBalance, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        return percentChange;
     }
 }

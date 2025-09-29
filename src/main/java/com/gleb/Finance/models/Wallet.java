@@ -42,6 +42,9 @@ public class Wallet {
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WalletBalanceHistory> walletBalanceHistories = new ArrayList<>();
+
     public Wallet() {
         this.createdAt = LocalDateTime.now();
         setSmartDefaults();
@@ -116,4 +119,12 @@ public class Wallet {
 
     public List<Expense> getExpenses() { return expenses; }
     public void setExpenses(List<Expense> expenses) { this.expenses = expenses; }
+
+    public List<WalletBalanceHistory> getWalletBalanceHistories() {
+        return walletBalanceHistories;
+    }
+
+    public void setWalletBalanceHistories(List<WalletBalanceHistory> walletBalanceHistories) {
+        this.walletBalanceHistories = walletBalanceHistories;
+    }
 }

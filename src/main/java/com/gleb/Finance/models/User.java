@@ -33,6 +33,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SavingGoal> savingGoals = new ArrayList<>();
+
     // Конструкторы
     public User() {
         this.createdAt = LocalDateTime.now();
@@ -69,4 +72,12 @@ public class User {
 
     public List<Expense> getExpenses() { return expenses; }
     public void setExpenses(List<Expense> expenses) { this.expenses = expenses; }
+
+    public List<SavingGoal> getSavingGoals() {
+        return savingGoals;
+    }
+
+    public void setSavingGoals(List<SavingGoal> savingGoals) {
+        this.savingGoals = savingGoals;
+    }
 }
