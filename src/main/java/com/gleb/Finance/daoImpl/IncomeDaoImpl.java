@@ -7,9 +7,11 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -61,6 +63,54 @@ public class IncomeDaoImpl implements IncomeDao {
             return result != null ? result :BigDecimal.ZERO;
         } catch (Exception e) {
             throw new RuntimeException("Error calculating total income", e);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalIncomeForCurrentMonth(long userId) {
+        Session session = sessionFactory.openSession();
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate firstDayOfMonth = now.withDayOfMonth(1);
+
+            String hql = "SELECT COALESCE(SUM(i.amount, 0) FROM Income i " +
+                    "WHERE i.user.id = :userId " +
+                    "AND i.incomeDate >= :firstDay " +
+                    "AND i.incomeDate >= :today";
+
+            return (BigDecimal) session.createQuery(hql)
+                    .setParameter("userId", userId).
+                    setParameter("firstDay", firstDayOfMonth)
+                    .setParameter("today", now)
+                    .uniqueResult();
+        } catch (Exception e) {
+            throw new RuntimeException("Error calculating current month income", e);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalIncomeForLastMonth(long userId) {
+        Session session = sessionFactory.openSession();
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate firstDayOfLastMonth = now.minusMonths(1).withDayOfMonth(1);
+            LocalDate lastDayOfLastMonth = now.withDayOfMonth(1).minusDays(1);
+
+            String hql = "SELECT COALESCE(SUM i.amount, 0) FROM Income i " +
+                    "WHERE i.user.id = :userId " +
+                    "AND i.incomeDate >= :firstDay " +
+                    "And i.incomeDate <= :lastDay";
+            return (BigDecimal) session.createQuery(hql)
+                    .setParameter("userId", userId)
+                    .setParameter("firstDay", firstDayOfLastMonth)
+                    .setParameter("lastDay", lastDayOfLastMonth)
+                    .uniqueResult();
+        } catch (Exception e) {
+            throw new RuntimeException("Error calculating last month income", e);
         } finally {
             session.close();
         }

@@ -8,4 +8,6 @@ import java.util.List;
 public interface IncomeDao {
     List<Income> getAllIncomes(long id);
     BigDecimal getTotalIncome(long id);
+    BigDecimal getTotalIncomeForCurrentMonth(long userId);
+    BigDecimal getTotalIncomeForLastMonth(long userId);
 }

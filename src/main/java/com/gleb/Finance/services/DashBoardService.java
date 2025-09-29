@@ -40,10 +40,12 @@ public class DashBoardService {
 
     public FinancialSummaryDto getFinancialSummaryDto(long id) {
         BigDecimal currentTotalBalance = walletDao.getTotalAvailableBalance(id);
-
         BigDecimal balanceChange = calculateBalanceChange(id, currentTotalBalance);
-
         BigDecimal balanceChangePercent = calculateChangeBalancePercent(id, currentTotalBalance);
+
+        BigDecimal totalIncome = incomeDao.getTotalIncome(id);
+        BigDecimal incomeChange = calculateIncomeChange(id);
+        BigDecimal incomeChangePercent = calculateIncomeChangePercent(id);
 
         BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
 
@@ -131,6 +133,45 @@ public class DashBoardService {
         // Основная формула: ((текущий - прошлый) / прошлый) * 100
         BigDecimal difference = currentBalance.subtract(lastMonthBalance);
         BigDecimal percentChange = difference.divide(lastMonthBalance, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        return percentChange;
+    }
+
+    private BigDecimal calculateIncomeChange(long userId) {
+        BigDecimal currentAmount = incomeDao.getTotalIncomeForCurrentMonth(userId);
+        BigDecimal lastMonthAmount = incomeDao.getTotalIncomeForLastMonth(userId);
+
+        return lastMonthAmount.subtract(currentAmount);
+    }
+
+    private BigDecimal calculateIncomeChangePercent(long userId) {
+        BigDecimal currentMonthIncome = incomeDao.getTotalIncomeForCurrentMonth(userId);
+        BigDecimal lastMonthIncome = incomeDao.getTotalIncomeForLastMonth(userId);
+
+        // Проверка на null
+        if (lastMonthIncome == null || currentMonthIncome == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был нулевой доход, а сейчас есть - считаем как +100%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) == 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) > 0) {
+            return BigDecimal.valueOf(100);
+        }
+
+        // Если в прошлом месяце был нулевой доход, а сейчас тоже ноль - 0%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) == 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был доход, а сейчас ноль - считаем как -100%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) > 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.valueOf(-100);
+        }
+
+        // Основная формула: ((текущий - прошлый) / прошлый) * 100
+        BigDecimal difference = currentMonthIncome.subtract(lastMonthIncome);
+        BigDecimal percentChange = difference.divide(lastMonthIncome, 4, BigDecimal.ROUND_HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
 
         return percentChange;
