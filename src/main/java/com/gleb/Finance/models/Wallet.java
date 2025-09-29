@@ -23,6 +23,16 @@ public class Wallet {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private WalletType type = WalletType.CREDIT_CARD;
+
+    @Column(name = "include_in_available_balance", nullable = false)
+    private boolean includeInAvailableBalance = true;
+
+    @Column(name = "include_in_net_worth", nullable = false)
+    private boolean includeInNetWorth = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -32,19 +42,44 @@ public class Wallet {
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
-    // Конструкторы
     public Wallet() {
         this.createdAt = LocalDateTime.now();
+        setSmartDefaults();
     }
 
-    public Wallet(User user, String name, BigDecimal balance) {
+    public Wallet(User user, String name, BigDecimal balance, WalletType type) {
         this();
         this.user = user;
         this.name = name;
         this.balance = balance;
+        this.type = type;
+        setSmartDefaults();
     }
 
-    // Геттеры и сеттеры
+    private void setSmartDefaults() {
+        switch (this.type) {
+            case CASH, BANK_ACCOUNT, CREDIT_CARD -> {
+                this.includeInAvailableBalance = true;
+                this.includeInNetWorth = true;
+            }
+            case INVESTMENT, DEBT, SAVINGS -> {
+                this.includeInAvailableBalance = false;
+                this.includeInNetWorth = true;
+            }
+            case LOAN -> {
+                this.includeInAvailableBalance = false;
+                this.includeInNetWorth = true;
+                if (this.balance.compareTo(BigDecimal.ZERO) > 0) {
+                    this.balance = this.balance.negate();
+                }
+            }
+            case OTHER -> {
+                this.includeInAvailableBalance = false;
+                this.includeInNetWorth = false;
+            }
+        }
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -56,6 +91,22 @@ public class Wallet {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public WalletType getType() { return type; }
+    public void setType(WalletType type) {
+        this.type = type;
+        setSmartDefaults();
+    }
+
+    public boolean isIncludeInAvailableBalance() { return includeInAvailableBalance; }
+    public void setIncludeInAvailableBalance(boolean includeInAvailableBalance) {
+        this.includeInAvailableBalance = includeInAvailableBalance;
+    }
+
+    public boolean isIncludeInNetWorth() { return includeInNetWorth; }
+    public void setIncludeInNetWorth(boolean includeInNetWorth) {
+        this.includeInNetWorth = includeInNetWorth;
+    }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

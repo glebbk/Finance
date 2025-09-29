@@ -8,8 +8,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -43,6 +43,24 @@ public class IncomeDaoImpl implements IncomeDao {
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
             throw new RuntimeException("Error get Income list", e);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalIncome(long id) {
+        Session session = sessionFactory.openSession();
+        try {
+            String hql = "SELECT SUM(i.amount) FROM Income i WHERE i.user.id = :userId";
+
+            BigDecimal result = (BigDecimal) session.createQuery(hql)
+                    .setParameter("userId", id)
+                    .uniqueResult();
+
+            return result != null ? result :BigDecimal.ZERO;
+        } catch (Exception e) {
+            throw new RuntimeException("Error calculating total income", e);
         } finally {
             session.close();
         }

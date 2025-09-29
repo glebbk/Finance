@@ -3,6 +3,7 @@ package com.gleb.Finance.dto;
 import com.gleb.Finance.models.TransactionType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class RecentTransactionDto {
 
@@ -12,12 +13,15 @@ public class RecentTransactionDto {
 
     private TransactionType type;
 
+    private LocalDate dateTime;
+
     public RecentTransactionDto() {}
 
-    public RecentTransactionDto(String name, BigDecimal amount, TransactionType type) {
+    public RecentTransactionDto(String name, BigDecimal amount, TransactionType type, LocalDate dateTime) {
         this.name = name;
         this.amount = amount;
         this.type = type;
+        this.dateTime = dateTime;
     }
 
     public String getName() {
@@ -42,5 +46,13 @@ public class RecentTransactionDto {
 
     public void setType(TransactionType type) {
         this.type = type;
+    }
+
+    public LocalDate getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDate dateTime) {
+        this.dateTime = dateTime;
     }
 }
