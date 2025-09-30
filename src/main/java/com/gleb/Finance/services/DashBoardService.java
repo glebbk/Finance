@@ -39,13 +39,20 @@ public class DashBoardService {
     }
 
     public FinancialSummaryDto getFinancialSummaryDto(long id) {
+        LocalDate now = LocalDate.now();
+        LocalDate cur = now.withDayOfMonth(1);
+
         BigDecimal currentTotalBalance = walletDao.getTotalAvailableBalance(id);
         BigDecimal balanceChange = calculateBalanceChange(id, currentTotalBalance);
         BigDecimal balanceChangePercent = calculateChangeBalancePercent(id, currentTotalBalance);
 
-        BigDecimal totalIncome = incomeDao.getTotalIncome(id);
-        BigDecimal incomeChange = calculateIncomeChange(id);
-        BigDecimal incomeChangePercent = calculateIncomeChangePercent(id);
+        BigDecimal totalIncome = incomeDao.getTotalIncomeWithDate(id, cur, now);
+        BigDecimal incomeChange = calculateIncomeChange(id, totalIncome);
+        BigDecimal incomeChangePercent = calculateIncomeChangePercent(id, totalIncome);
+
+        BigDecimal totalExpense = expenseDao.getTotalExpenseWithDate(id, cur, now);
+        BigDecimal expenseChange = calculateExpenseChange(id, totalExpense);
+        BigDecimal expenseChangePercent = calculateExpenseChangePercent(id, totalExpense);
 
         BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
 
@@ -138,16 +145,59 @@ public class DashBoardService {
         return percentChange;
     }
 
-    private BigDecimal calculateIncomeChange(long userId) {
-        BigDecimal currentAmount = incomeDao.getTotalIncomeForCurrentMonth(userId);
-        BigDecimal lastMonthAmount = incomeDao.getTotalIncomeForLastMonth(userId);
+    private BigDecimal calculateIncomeChange(long userId, BigDecimal currentAmount) {
+        BigDecimal lastMonthAmount = incomeDao.getTotalIncomeWithDate(userId,
+                LocalDate.now().minusMonths(1).withDayOfMonth(1),
+                LocalDate.now().withDayOfMonth(1).minusDays(1));
 
         return lastMonthAmount.subtract(currentAmount);
     }
 
-    private BigDecimal calculateIncomeChangePercent(long userId) {
-        BigDecimal currentMonthIncome = incomeDao.getTotalIncomeForCurrentMonth(userId);
-        BigDecimal lastMonthIncome = incomeDao.getTotalIncomeForLastMonth(userId);
+    private BigDecimal calculateExpenseChange(long userId, BigDecimal currentAmount) {
+        BigDecimal lastMonthAmount = expenseDao.getTotalExpenseWithDate(userId,
+                LocalDate.now().minusMonths(1).withDayOfMonth(1),
+                LocalDate.now().withDayOfMonth(1).minusDays(1));
+
+        return lastMonthAmount.subtract(currentAmount);
+    }
+
+    private BigDecimal calculateIncomeChangePercent(long userId, BigDecimal currentMonthIncome) {
+        BigDecimal lastMonthIncome = incomeDao.getTotalIncomeWithDate(userId,
+                LocalDate.now().minusMonths(1).withDayOfMonth(1),
+                LocalDate.now().withDayOfMonth(1).minusDays(1));
+
+        // Проверка на null
+        if (lastMonthIncome == null || currentMonthIncome == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был нулевой доход, а сейчас есть - считаем как +100%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) == 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) > 0) {
+            return BigDecimal.valueOf(100);
+        }
+
+        // Если в прошлом месяце был нулевой доход, а сейчас тоже ноль - 0%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) == 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // Если в прошлом месяце был доход, а сейчас ноль - считаем как -100%
+        if (lastMonthIncome.compareTo(BigDecimal.ZERO) > 0 && currentMonthIncome.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.valueOf(-100);
+        }
+
+        // Основная формула: ((текущий - прошлый) / прошлый) * 100
+        BigDecimal difference = currentMonthIncome.subtract(lastMonthIncome);
+        BigDecimal percentChange = difference.divide(lastMonthIncome, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        return percentChange;
+    }
+
+    private BigDecimal calculateExpenseChangePercent(long userId, BigDecimal currentMonthIncome) {
+        BigDecimal lastMonthIncome = expenseDao.getTotalExpenseWithDate(userId,
+                LocalDate.now().minusMonths(1).withDayOfMonth(1),
+                LocalDate.now().withDayOfMonth(1).minusDays(1));
 
         // Проверка на null
         if (lastMonthIncome == null || currentMonthIncome == null) {
