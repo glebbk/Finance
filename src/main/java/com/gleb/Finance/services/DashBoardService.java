@@ -54,21 +54,28 @@ public class DashBoardService {
         BigDecimal expenseChange = calculateExpenseChange(id, totalExpense);
         BigDecimal expenseChangePercent = calculateExpenseChangePercent(id, totalExpense);
 
+        BigDecimal saving = walletDao.getTotalNetWorth(id);
         BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
+        BigDecimal savingProgress = !savingTarget.equals(BigDecimal.ZERO) ? savingTarget.subtract(saving) : BigDecimal.ZERO;
 
-        return new FinancialSummaryDto();
+        return new FinancialSummaryDto(
+                currentTotalBalance,
+                balanceChange,
+                balanceChangePercent,
+                totalIncome,
+                incomeChange,
+                incomeChangePercent,
+                totalExpense,
+                expenseChange,
+                expenseChangePercent,
+                saving,
+                savingProgress,
+                savingTarget
+        );
     }
 
     public FinancialDashboardDto getFinanceDashboard(long id) {
         String userName = userDao.getUser(id).getUsername();
-
-        BigDecimal totalBalance = walletDao.getTotalAvailableBalance(id);
-
-        BigDecimal saving = walletDao.getTotalNetWorth(id);
-
-        BigDecimal totalIncome = incomeDao.getTotalIncome(id);
-
-        BigDecimal totalExpense = expenseDao.getTotalExpense(id);
 
         List<ExpenseDto> expenseDtoList = ExpenseMapper.toDtoList(expenseDao.getAllExpense(id));
 
@@ -80,13 +87,9 @@ public class DashBoardService {
 
         return new FinancialDashboardDto(
                 userName,
-                totalBalance,
-                saving,
-                totalIncome,
-                totalExpense,
                 expenseDtoList,
                 incomeDtoList,
-                 walletBalanceDtoList,
+                walletBalanceDtoList,
                 recentTransactionDtoList
         );
     }

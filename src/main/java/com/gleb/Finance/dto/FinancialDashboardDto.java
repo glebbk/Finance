@@ -7,14 +7,6 @@ import java.util.List;
 public class FinancialDashboardDto {
     private String userName;
 
-    private BigDecimal totalBalance; // сумма "на руках"
-
-    private BigDecimal saving;
-
-    private BigDecimal totalExpenses;
-
-    private BigDecimal totalIncomes;
-
     private List<ExpenseDto> expenseDtoList;
 
     private List<IncomeDto> incomeDtoList;
@@ -25,16 +17,11 @@ public class FinancialDashboardDto {
 
     public FinancialDashboardDto() {}
 
-    public FinancialDashboardDto(String userName, BigDecimal totalBalance, BigDecimal saving,
-                                 BigDecimal totalExpenses, BigDecimal totalIncomes,
+    public FinancialDashboardDto(String userName,
                                  List<ExpenseDto> expenseDtoList, List<IncomeDto> incomeDtoList,
                                  List<WalletBalanceDto> walletBalanceDtoList,
                                  List<RecentTransactionDto> recentTransactionDtoList) {
         this.userName = userName;
-        this.totalBalance = totalBalance;
-        this.saving = saving;
-        this.totalExpenses = totalExpenses;
-        this.totalIncomes = totalIncomes;
         this.expenseDtoList = expenseDtoList;
         this.incomeDtoList = incomeDtoList;
         this.walletBalanceDtoList = walletBalanceDtoList;
@@ -79,37 +66,5 @@ public class FinancialDashboardDto {
 
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public BigDecimal getTotalBalance() {
-        return totalBalance;
-    }
-
-    public void setTotalBalance(BigDecimal totalBalance) {
-        this.totalBalance = totalBalance;
-    }
-
-    public BigDecimal getSaving() {
-        return saving;
-    }
-
-    public void setSaving(BigDecimal saving) {
-        this.saving = saving;
-    }
-
-    public BigDecimal getTotalExpenses() {
-        return totalExpenses;
-    }
-
-    public void setTotalExpenses(BigDecimal totalExpenses) {
-        this.totalExpenses = totalExpenses;
-    }
-
-    public BigDecimal getTotalIncomes() {
-        return totalIncomes;
-    }
-
-    public void setTotalIncomes(BigDecimal totalIncomes) {
-        this.totalIncomes = totalIncomes;
     }
 }

@@ -403,13 +403,32 @@
         }
     }
 
-    // Загрузка данных дашборда
+    // Загрузка финансовой сводки (карточки)
+    async function loadFinancialSummary() {
+        try {
+            showLoading(true);
+            hideError();
+
+            const response = await fetch(`${API_BASE_URL}/dashboard/financialSummary/${currentUserId}`);
+            if (!response.ok) throw new Error('Ошибка сервера: ' + response.status);
+
+            const data = await response.json();
+            renderFinancialCards(data);
+
+        } catch (error) {
+            showError('Ошибка загрузки финансовой сводки: ' + error.message);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Загрузка дашборда (транзакции, счета и т.д.)
     async function loadDashboard() {
         try {
             showLoading(true);
             hideError();
 
-            const response = await fetch(`${API_BASE_URL}/dashboard/${currentUserId}`);
+            const response = await fetch(`${API_BASE_URL}/dashboard/dashBoard/${currentUserId}`);
             if (!response.ok) throw new Error('Ошибка сервера: ' + response.status);
 
             const data = await response.json();
@@ -422,29 +441,33 @@
         }
     }
 
-    // Отрисовка дашборда
-    function renderDashboard(data) {
-        // Обновляем имя пользователя
-        document.getElementById('user-name').textContent = data.userName || 'Пользователь';
-        document.getElementById('welcome-message').textContent = `Добро пожаловать, ${data.userName || 'Гость'}!`;
-
-        // Финансовые карточки
-        renderFinancialCards(data);
-
-        // Последние транзакции
-        renderRecentTransactions(data.recentTransactionDtoList);
-
-        // Обзор счетов
-        renderAccountsOverview(data.walletBalanceDtoList);
-
-        // Графики
-        renderCharts(data);
-    }
-
-    // Отрисовка финансовых карточек
+    // Отрисовка финансовых карточек (из FinancialSummaryDto)
     function renderFinancialCards(data) {
         const container = document.getElementById('financial-cards');
         if (!container) return;
+
+        // Форматирование процентов с знаком
+        function formatPercent(percent) {
+            if (!percent) return '0%';
+            const sign = percent >= 0 ? '+' : '';
+            return `${sign}${Math.abs(percent)}%`;
+        }
+
+        // Определение цвета и иконки для изменений
+        function getChangeStyles(change) {
+            if (!change) return { color: 'text-gray-500', icon: 'minus', sign: '' };
+
+            const isPositive = change > 0;
+            const color = isPositive ? 'text-success-500' : 'text-danger-500';
+            const icon = isPositive ? 'trending-up' : 'trending-down';
+            const sign = isPositive ? '+' : '';
+
+            return { color, icon, sign };
+        }
+
+        const balanceStyles = getChangeStyles(data.balanceChange);
+        const incomeStyles = getChangeStyles(data.incomesChange);
+        const expenseStyles = getChangeStyles(data.expensesChange);
 
         container.innerHTML = `
             <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -453,9 +476,9 @@
                     <i data-feather="dollar-sign" class="text-primary-500"></i>
                 </div>
                 <p class="text-2xl font-bold">${formatMoney(data.totalBalance)}</p>
-                <p class="text-sm text-success-500 flex items-center mt-1">
-                    <i data-feather="trending-up" class="w-4 h-4 mr-1"></i>
-                    <span>+12,340 ₽ (4.5%)</span>
+                <p class="text-sm ${balanceStyles.color} flex items-center mt-1">
+                    <i data-feather="${balanceStyles.icon}" class="w-4 h-4 mr-1"></i>
+                    <span>${balanceStyles.sign}${formatMoney(data.balanceChange)} (${formatPercent(data.balanceChangePercent)})</span>
                 </p>
             </div>
 
@@ -465,7 +488,11 @@
                     <i data-feather="arrow-down-right" class="text-success-500"></i>
                 </div>
                 <p class="text-2xl font-bold">${formatMoney(data.totalIncomes)}</p>
-                <p class="text-sm text-gray-500 mt-1">за текущий месяц</p>
+                <p class="text-sm ${incomeStyles.color} flex items-center mt-1">
+                    <i data-feather="${incomeStyles.icon}" class="w-4 h-4 mr-1"></i>
+                    <span>${incomeStyles.sign}${formatMoney(data.incomesChange)} (${formatPercent(data.incomesChangePercent)})</span>
+                </p>
+                <p class="text-xs text-gray-500 mt-1">${data.incomesPeriod || 'за текущий месяц'}</p>
             </div>
 
             <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -474,10 +501,11 @@
                     <i data-feather="arrow-up-right" class="text-danger-500"></i>
                 </div>
                 <p class="text-2xl font-bold">${formatMoney(data.totalExpenses)}</p>
-                <p class="text-sm text-danger-500 flex items-center mt-1">
-                    <i data-feather="alert-circle" class="w-4 h-4 mr-1"></i>
-                    <span>+5,200 ₽ (7.1%)</span>
+                <p class="text-sm ${expenseStyles.color} flex items-center mt-1">
+                    <i data-feather="${expenseStyles.icon}" class="w-4 h-4 mr-1"></i>
+                    <span>${expenseStyles.sign}${formatMoney(data.expensesChange)} (${formatPercent(data.expensesChangePercent)})</span>
                 </p>
+                <p class="text-xs text-gray-500 mt-1">${data.expensesTargetInfo || ''}</p>
             </div>
 
             <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -486,11 +514,32 @@
                     <i data-feather="piggy-bank" class="text-primary-500"></i>
                 </div>
                 <p class="text-2xl font-bold">${formatMoney(data.saving)}</p>
-                <p class="text-sm text-gray-500 mt-1">до цели: 43,700 ₽</p>
+                <p class="text-sm text-gray-500 mt-1">до цели: ${formatMoney(data.savingTarget)}</p>
+                ${data.savingProgress && data.savingProgress !== 0 ?
+                    `<div class="mt-2 bg-gray-200 rounded-full h-2">
+                        <div class="bg-primary-500 h-2 rounded-full" style="width: ${Math.min(100, Math.max(0, data.savingProgress))}%"></div>
+                    </div>` : ''
+                }
             </div>
         `;
 
         feather.replace();
+    }
+
+    // Отрисовка дашборда (из FinancialDashboardDto)
+    function renderDashboard(data) {
+        // Обновляем имя пользователя
+        document.getElementById('user-name').textContent = data.userName || 'Пользователь';
+        document.getElementById('welcome-message').textContent = `Добро пожаловать, ${data.userName || 'Гость'}!`;
+
+        // Последние транзакции
+        renderRecentTransactions(data.recentTransactionDtoList);
+
+        // Обзор счетов
+        renderAccountsOverview(data.walletBalanceDtoList);
+
+        // Графики
+        renderCharts(data);
     }
 
     // Отрисовка последних транзакций
@@ -690,6 +739,7 @@
 
     // Обновление данных
     function refreshData() {
+        loadFinancialSummary();
         loadDashboard();
     }
 
@@ -698,6 +748,7 @@
         feather.replace();
         AOS.init();
         updateCurrentDate();
+        loadFinancialSummary();
         loadDashboard();
     });
 </script>

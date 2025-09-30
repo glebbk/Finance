@@ -29,6 +29,10 @@ public class SavingGoal {
     @Column(nullable = false)
     private boolean completed = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "goal_type", nullable = false, length = 20)
+    private GoalType goalType = GoalType.SAVINGS;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -40,14 +44,28 @@ public class SavingGoal {
         this.updatedAt = LocalDateTime.now();
     }
 
+    // Конструктор для целей накоплений (старый функционал)
     public SavingGoal(User user, String name, BigDecimal targetAmount, LocalDate deadline) {
         this();
         this.user = user;
         this.name = name;
         this.targetAmount = targetAmount;
         this.deadline = deadline;
+        this.goalType = GoalType.SAVINGS;
     }
 
+    // Конструктор для целей по доходам
+    public SavingGoal(User user, String name, BigDecimal targetAmount, LocalDate deadline
+                        ,GoalType goalType) {
+        this();
+        this.user = user;
+        this.name = name;
+        this.targetAmount = targetAmount;
+        this.deadline = deadline;
+        this.goalType = goalType;
+    }
+
+    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -72,6 +90,12 @@ public class SavingGoal {
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) {
         this.completed = completed;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public GoalType getGoalType() { return goalType; }
+    public void setGoalType(GoalType goalType) {
+        this.goalType = goalType;
         this.updatedAt = LocalDateTime.now();
     }
 

@@ -71,8 +71,8 @@ public class IncomeDaoImpl implements IncomeDao {
     public BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate to) {
         Session session = sessionFactory.openSession();
         try {
-            String hql = "SELECT COALESCE(SUM i.amount, 0) FROM Income i " +
-                    "WHERE i.user.id = :userID " +
+            String hql = "SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
+                    "WHERE i.user.id = :userId " +
                     "AND i.incomeDate >= :from " +
                     "AND i.incomeDate <= :to";
             return (BigDecimal) session.createQuery(hql)

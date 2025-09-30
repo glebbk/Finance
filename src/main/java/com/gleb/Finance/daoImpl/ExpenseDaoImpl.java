@@ -71,7 +71,7 @@ public class ExpenseDaoImpl implements ExpenseDao {
     public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
         Session session = sessionFactory.openSession();
         try {
-            String hql = "SELECT COALESCE(SUM(e.amount, 0) FROM Expense e " +
+            String hql = "SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
                     "WHERE e.user.id = :userId " +
                     "AND e.expenseDate >= :from " +
                     "AND e.expenseDate <= :to";

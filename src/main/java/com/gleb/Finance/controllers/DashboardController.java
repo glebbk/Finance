@@ -1,9 +1,6 @@
 package com.gleb.Finance.controllers;
 
-import com.gleb.Finance.dto.ExpensePageDto;
-import com.gleb.Finance.dto.IncomePageDto;
-import com.gleb.Finance.dto.WalletsPageDto;
-import com.gleb.Finance.dto.FinancialDashboardDto;
+import com.gleb.Finance.dto.*;
 import com.gleb.Finance.services.DashBoardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +20,18 @@ public class DashboardController {
         this.dashBoardService = dashBoardService;
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/financialSummary/{userId}")
+    public ResponseEntity<FinancialSummaryDto> getFinancialSummary(
+            @PathVariable Long userId) {
+
+        logger.info("Getting financialSummary for user id: {}", userId);
+        FinancialSummaryDto financialSummaryDto = dashBoardService.getFinancialSummaryDto(userId);
+        logger.info("FinancialSummary retrieved successfully for user id: {}", userId);
+
+        return ResponseEntity.ok(financialSummaryDto);
+    }
+
+    @GetMapping("/dashBoard/{userId}")
     public ResponseEntity<FinancialDashboardDto> getDashboard(
             @PathVariable Long userId) {
 
