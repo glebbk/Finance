@@ -125,6 +125,41 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
+<!-- Auth Prompt Modal -->
+<div id="auth-prompt" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-96">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+                <i data-feather="lock" class="text-primary-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">Вход в систему</h3>
+            <p class="text-gray-600 mt-2">Введите ваши учетные данные</p>
+        </div>
+
+        <form id="login-form">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="auth-email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="your@email.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+                    <input type="password" id="auth-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Ваш пароль" required>
+                </div>
+            </div>
+
+            <div class="mt-6 flex space-x-3">
+                <button type="submit" class="flex-1 bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-medium">
+                    Войти
+                </button>
+                <button type="button" id="cancel-auth-btn" class="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition font-medium">
+                    Отмена
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <div class="sidebar bg-white w-64 border-r border-gray-200 flex flex-col">
@@ -206,15 +241,19 @@
         </div>
 
         <div class="p-4 border-t border-gray-200">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 mb-3">
                 <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
                     <i data-feather="user" class="text-gray-600"></i>
                 </div>
                 <div>
-                    <p class="font-medium" id="user-name">Загрузка...</p>
-                    <p class="text-sm text-gray-500">Premium</p>
+                    <p class="font-medium" id="user-name">Гость</p>
+                    <p class="text-sm text-gray-500" id="user-email">Войдите в систему</p>
                 </div>
             </div>
+            <button onclick="logout()" class="w-full flex items-center space-x-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i data-feather="log-out" class="w-4 h-4"></i>
+                <span>Выйти</span>
+            </button>
         </div>
     </div>
 
@@ -230,6 +269,10 @@
             </div>
 
             <div class="flex items-center space-x-4">
+                <div id="auth-status" class="flex items-center space-x-2 text-sm text-gray-600">
+                    <i data-feather="user" class="w-4 h-4"></i>
+                    <span id="auth-status-text">Не авторизован</span>
+                </div>
                 <div id="loading" class="loading">
                     <div class="flex items-center space-x-2 text-primary-600">
                         <i data-feather="loader" class="w-4 h-4 animate-spin"></i>
@@ -262,24 +305,33 @@
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h2 class="text-2xl font-bold" id="welcome-message">Добро пожаловать!</h2>
+                        <h2 class="text-2xl font-bold" id="welcome-message">Добро пожаловать в Финансовый Центр!</h2>
                         <p class="text-gray-500" id="current-date">Загрузка даты...</p>
                     </div>
                     <div class="flex space-x-3">
-                        <button class="flex items-center space-x-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition">
-                            <i data-feather="plus" class="w-4 h-4"></i>
-                            <span>Добавить операцию</span>
+                        <button onclick="showAuthPrompt()" class="flex items-center space-x-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition">
+                            <i data-feather="log-in" class="w-4 h-4"></i>
+                            <span>Войти в систему</span>
                         </button>
                         <button class="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
-                            <i data-feather="upload" class="w-4 h-4"></i>
-                            <span>Импорт</span>
+                            <i data-feather="help-circle" class="w-4 h-4"></i>
+                            <span>Помощь</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Financial overview cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="financial-cards">
-                    <!-- Динамически загружаемые карточки -->
+                    <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+                            <i data-feather="log-in" class="text-primary-500"></i>
+                        </div>
+                        <h3 class="text-gray-500 font-medium mb-2">Требуется авторизация</h3>
+                        <p class="text-sm text-gray-500">Войдите в систему чтобы увидеть ваши финансовые данные</p>
+                        <button onclick="showAuthPrompt()" class="mt-4 text-primary-600 hover:text-primary-800 text-sm font-medium">
+                            Войти сейчас →
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Charts and transactions -->
@@ -318,7 +370,10 @@
                         </div>
 
                         <div class="space-y-4" id="recent-transactions">
-                            <!-- Динамически загружаемые транзакции -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i data-feather="credit-card" class="w-8 h-8 mx-auto mb-2"></i>
+                                <p>Войдите для просмотра операций</p>
+                            </div>
                         </div>
                     </div>
 
@@ -330,7 +385,10 @@
                         </div>
 
                         <div class="space-y-4" id="accounts-overview">
-                            <!-- Динамически загружаемые счета -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i data-feather="credit-card" class="w-8 h-8 mx-auto mb-2"></i>
+                                <p>Нет доступных счетов</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -341,7 +399,10 @@
 
 <script>
     const API_BASE_URL = 'http://localhost:8080/api';
-    const currentUserId = 1;
+
+    // Глобальные переменные для хранения экземпляров графиков
+    let expenseChartInstance = null;
+    let cashFlowChartInstance = null;
 
     // Форматирование денег
     function formatMoney(amount) {
@@ -403,57 +464,226 @@
         }
     }
 
-    // Загрузка финансовой сводки (карточки)
+    // Показать окно авторизации
+    function showAuthPrompt() {
+        console.log('showAuthPrompt called');
+        const authPrompt = document.getElementById('auth-prompt');
+        if (authPrompt) {
+            authPrompt.classList.remove('hidden');
+            console.log('Auth prompt should be visible now');
+        }
+    }
+
+    // Скрыть окно авторизации
+    function hideAuthPrompt() {
+        console.log('hideAuthPrompt called');
+        const authPrompt = document.getElementById('auth-prompt');
+        if (authPrompt) {
+            authPrompt.classList.add('hidden');
+            console.log('Auth prompt should be hidden now');
+        }
+        // Очищаем поля формы
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-password').value = '';
+        // Скрываем ошибки
+        hideError();
+    }
+
+    // Обработчик формы входа
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('Login form submitted');
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+
+        if (!email || !password) {
+            showError('Пожалуйста, заполните все поля');
+            return;
+        }
+
+        console.log('Saving credentials to localStorage');
+        // Сохраняем учетные данные
+        localStorage.setItem('username', email);
+        localStorage.setItem('password', password);
+
+        updateAuthStatus();
+
+        // Пробуем загрузить данные (функция сама закроет окно при успехе)
+        await testAuthAndLoadData();
+    });
+
+    // Функция для проверки аутентификации и загрузки данных
+    async function testAuthAndLoadData() {
+        try {
+            console.log('=== START testAuthAndLoadData ===');
+            showLoading(true);
+            hideError();
+
+            const username = localStorage.getItem('username');
+            const password = localStorage.getItem('password');
+            console.log('Credentials from localStorage:', { username, password: password ? '***' : 'empty' });
+
+            // Пробуем сделать простой запрос для проверки аутентификации
+            console.log('Making test request to financialSummary...');
+            const testData = await makeAuthenticatedRequest(`${API_BASE_URL}/dashboard/financialSummary`);
+            console.log('✅ Authentication successful, received data:', testData);
+
+            // Если успешно - загружаем все данные
+            console.log('Loading financial summary...');
+            await loadFinancialSummary();
+            console.log('✅ Financial summary loaded');
+
+            console.log('Loading dashboard...');
+            await loadDashboard();
+            console.log('✅ Dashboard loaded');
+
+            // Скрываем окно авторизации после успешного входа
+            console.log('Calling hideAuthPrompt...');
+            hideAuthPrompt();
+            showError(''); // Очищаем возможные предыдущие ошибки
+            console.log('✅ Authentication flow completed successfully');
+
+        } catch (error) {
+            console.error('❌ Authentication failed:', error);
+            // Если аутентификация не удалась
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+            updateAuthStatus();
+
+            if (error.message.includes('401') || error.message.includes('Неверные учетные данные')) {
+                showError('Неверный email или пароль');
+                showAuthPrompt(); // Показываем окно входа снова
+            } else {
+                showError('Ошибка авторизации: ' + error.message);
+            }
+        } finally {
+            showLoading(false);
+            console.log('=== END testAuthAndLoadData ===');
+        }
+    }
+
+    // Выход из системы
+    function logout() {
+        console.log('Logout called');
+        // Уничтожаем графики перед выходом
+        destroyCharts();
+        localStorage.removeItem('username');
+        localStorage.removeItem('password');
+        updateAuthStatus();
+        location.reload(); // Полностью перезагружаем страницу
+    }
+
+    // Уничтожение графиков
+    function destroyCharts() {
+        if (expenseChartInstance) {
+            expenseChartInstance.destroy();
+            expenseChartInstance = null;
+        }
+        if (cashFlowChartInstance) {
+            cashFlowChartInstance.destroy();
+            cashFlowChartInstance = null;
+        }
+    }
+
+    // Обновление статуса авторизации
+    function updateAuthStatus() {
+        const username = localStorage.getItem('username');
+        const authStatus = document.getElementById('auth-status-text');
+        const userEmail = document.getElementById('user-email');
+        const userName = document.getElementById('user-name');
+
+        if (username) {
+            authStatus.textContent = 'Авторизован';
+            userEmail.textContent = username;
+            userName.textContent = 'Пользователь';
+            document.getElementById('auth-status').classList.remove('text-gray-600');
+            document.getElementById('auth-status').classList.add('text-success-600');
+        } else {
+            authStatus.textContent = 'Не авторизован';
+            userEmail.textContent = 'Войдите в систему';
+            userName.textContent = 'Гость';
+            document.getElementById('auth-status').classList.remove('text-success-600');
+            document.getElementById('auth-status').classList.add('text-gray-600');
+        }
+    }
+
+    // Функция для аутентифицированных запросов
+    async function makeAuthenticatedRequest(url, options = {}) {
+        const username = localStorage.getItem('username');
+        const password = localStorage.getItem('password');
+
+        console.log('Making authenticated request to:', url);
+
+        if (!username || !password) {
+            throw new Error('Требуется авторизация');
+        }
+
+        const headers = {
+            'Authorization': 'Basic ' + btoa(username + ':' + password),
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        console.log('Sending request with Basic Auth header');
+        const response = await fetch(url, { ...options, headers });
+
+        console.log('Response status:', response.status);
+
+        if (response.status === 401) {
+            throw new Error('Неверные учетные данные');
+        }
+
+        if (!response.ok) {
+            throw new Error('Ошибка сервера: ' + response.status);
+        }
+
+        const responseData = await response.json();
+        console.log('Response data received successfully');
+        return responseData;
+    }
+
+    // Загрузка финансовой сводки
     async function loadFinancialSummary() {
         try {
-            showLoading(true);
-            hideError();
-
-            const response = await fetch(`${API_BASE_URL}/dashboard/financialSummary/${currentUserId}`);
-            if (!response.ok) throw new Error('Ошибка сервера: ' + response.status);
-
-            const data = await response.json();
+            console.log('Loading financial summary from API...');
+            const data = await makeAuthenticatedRequest(`${API_BASE_URL}/dashboard/financialSummary`);
             renderFinancialCards(data);
-
+            console.log('Financial summary rendered');
         } catch (error) {
-            showError('Ошибка загрузки финансовой сводки: ' + error.message);
-        } finally {
-            showLoading(false);
+            console.error('Error loading financial summary:', error);
+            throw error;
         }
     }
 
-    // Загрузка дашборда (транзакции, счета и т.д.)
+    // Загрузка дашборда
     async function loadDashboard() {
         try {
-            showLoading(true);
-            hideError();
-
-            const response = await fetch(`${API_BASE_URL}/dashboard/dashBoard/${currentUserId}`);
-            if (!response.ok) throw new Error('Ошибка сервера: ' + response.status);
-
-            const data = await response.json();
+            console.log('Loading dashboard from API...');
+            const data = await makeAuthenticatedRequest(`${API_BASE_URL}/dashboard/dashBoard`);
             renderDashboard(data);
-
+            console.log('Dashboard rendered');
         } catch (error) {
-            showError('Ошибка загрузки дашборда: ' + error.message);
-        } finally {
-            showLoading(false);
+            console.error('Error loading dashboard:', error);
+            throw error;
         }
     }
 
-    // Отрисовка финансовых карточек (из FinancialSummaryDto)
+    // Отрисовка финансовых карточек
+    // Отрисовка финансовых карточек
     function renderFinancialCards(data) {
+        console.log('Rendering financial cards with data:', data);
         const container = document.getElementById('financial-cards');
-        if (!container) return;
+        if (!container) {
+            console.error('Financial cards container not found!');
+            return;
+        }
 
-        // Форматирование процентов с знаком
         function formatPercent(percent) {
             if (!percent) return '0%';
             const sign = percent >= 0 ? '+' : '';
             return `${sign}${Math.abs(percent)}%`;
         }
 
-        // Определение цвета и иконки для изменений
         function getChangeStyles(change) {
             if (!change) return { color: 'text-gray-500', icon: 'minus', sign: '' };
 
@@ -470,82 +700,83 @@
         const expenseStyles = getChangeStyles(data.expensesChange);
 
         container.innerHTML = `
-            <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-500 font-medium">Общий баланс</h3>
-                    <i data-feather="dollar-sign" class="text-primary-500"></i>
-                </div>
-                <p class="text-2xl font-bold">${formatMoney(data.totalBalance)}</p>
-                <p class="text-sm ${balanceStyles.color} flex items-center mt-1">
-                    <i data-feather="${balanceStyles.icon}" class="w-4 h-4 mr-1"></i>
-                    <span>${balanceStyles.sign}${formatMoney(data.balanceChange)} (${formatPercent(data.balanceChangePercent)})</span>
-                </p>
+        <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-500 font-medium">Общий баланс</h3>
+                <i data-feather="dollar-sign" class="text-primary-500"></i>
             </div>
+            <p class="text-2xl font-bold">${formatMoney(data.totalBalance)}</p>
+            <p class="text-sm ${balanceStyles.color} flex items-center mt-1">
+                <i data-feather="${balanceStyles.icon}" class="w-4 h-4 mr-1"></i>
+                <span>${balanceStyles.sign}${formatMoney(data.balanceChange)} (${formatPercent(data.balanceChangePercent)})</span>
+            </p>
+        </div>
 
-            <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-500 font-medium">Доходы</h3>
-                    <i data-feather="arrow-down-right" class="text-success-500"></i>
-                </div>
-                <p class="text-2xl font-bold">${formatMoney(data.totalIncomes)}</p>
-                <p class="text-sm ${incomeStyles.color} flex items-center mt-1">
-                    <i data-feather="${incomeStyles.icon}" class="w-4 h-4 mr-1"></i>
-                    <span>${incomeStyles.sign}${formatMoney(data.incomesChange)} (${formatPercent(data.incomesChangePercent)})</span>
-                </p>
-                <p class="text-xs text-gray-500 mt-1">${data.incomesPeriod || 'за текущий месяц'}</p>
+        <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-500 font-medium">Доходы</h3>
+                <i data-feather="arrow-down-right" class="text-success-500"></i>
             </div>
+            <p class="text-2xl font-bold">${formatMoney(data.totalIncomes)}</p>
+            <p class="text-sm ${incomeStyles.color} flex items-center mt-1">
+                <i data-feather="${incomeStyles.icon}" class="w-4 h-4 mr-1"></i>
+                <span>${incomeStyles.sign}${formatMoney(data.incomesChange)} (${formatPercent(data.incomesChangePercent)})</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">${data.incomesPeriod || 'за текущий месяц'}</p>
+        </div>
 
-            <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-500 font-medium">Расходы</h3>
-                    <i data-feather="arrow-up-right" class="text-danger-500"></i>
-                </div>
-                <p class="text-2xl font-bold">${formatMoney(data.totalExpenses)}</p>
-                <p class="text-sm ${expenseStyles.color} flex items-center mt-1">
-                    <i data-feather="${expenseStyles.icon}" class="w-4 h-4 mr-1"></i>
-                    <span>${expenseStyles.sign}${formatMoney(data.expensesChange)} (${formatPercent(data.expensesChangePercent)})</span>
-                </p>
-                <p class="text-xs text-gray-500 mt-1">${data.expensesTargetInfo || ''}</p>
+        <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-500 font-medium">Расходы</h3>
+                <i data-feather="arrow-up-right" class="text-danger-500"></i>
             </div>
+            <p class="text-2xl font-bold">${formatMoney(data.totalExpenses)}</p>
+            <p class="text-sm ${expenseStyles.color} flex items-center mt-1">
+                <i data-feather="${expenseStyles.icon}" class="w-4 h-4 mr-1"></i>
+                <span>${expenseStyles.sign}${formatMoney(data.expensesChange)} (${formatPercent(data.expensesChangePercent)})</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">${data.expensesTargetInfo || ''}</p>
+        </div>
 
-            <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-500 font-medium">Сбережения</h3>
-                    <i data-feather="piggy-bank" class="text-primary-500"></i>
-                </div>
-                <p class="text-2xl font-bold">${formatMoney(data.saving)}</p>
-                <p class="text-sm text-gray-500 mt-1">до цели: ${formatMoney(data.savingTarget)}</p>
-                ${data.savingProgress && data.savingProgress !== 0 ?
-                    `<div class="mt-2 bg-gray-200 rounded-full h-2">
-                        <div class="bg-primary-500 h-2 rounded-full" style="width: ${Math.min(100, Math.max(0, data.savingProgress))}%"></div>
-                    </div>` : ''
-                }
+        <div class="dashboard-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-500 font-medium">Сбережения</h3>
+                <i data-feather="save" class="text-primary-500"></i>
             </div>
-        `;
+            <p class="text-2xl font-bold">${formatMoney(data.saving)}</p>
+            <p class="text-sm text-gray-500 mt-1">до цели: ${formatMoney(data.savingTarget)}</p>
+            ${data.savingProgress && data.savingProgress !== 0 ?
+                `<div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-primary-500 h-2 rounded-full" style="width: ${Math.min(100, Math.max(0, data.savingProgress))}%"></div>
+                </div>` : ''
+            }
+        </div>
+    `;
 
         feather.replace();
+        console.log('Financial cards rendered successfully');
     }
 
-    // Отрисовка дашборда (из FinancialDashboardDto)
+    // Отрисовка дашборда
     function renderDashboard(data) {
-        // Обновляем имя пользователя
+        console.log('Rendering dashboard with data:', data);
         document.getElementById('user-name').textContent = data.userName || 'Пользователь';
         document.getElementById('welcome-message').textContent = `Добро пожаловать, ${data.userName || 'Гость'}!`;
 
-        // Последние транзакции
         renderRecentTransactions(data.recentTransactionDtoList);
-
-        // Обзор счетов
         renderAccountsOverview(data.walletBalanceDtoList);
-
-        // Графики
         renderCharts(data);
+        console.log('Dashboard rendered successfully');
     }
 
     // Отрисовка последних транзакций
     function renderRecentTransactions(transactions) {
+        console.log('Rendering recent transactions:', transactions);
         const container = document.getElementById('recent-transactions');
-        if (!container) return;
+        if (!container) {
+            console.error('Recent transactions container not found!');
+            return;
+        }
 
         if (!transactions || transactions.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-4">Нет операций</p>';
@@ -580,12 +811,17 @@
 
         container.innerHTML = transactionsHtml;
         feather.replace();
+        console.log('Recent transactions rendered successfully');
     }
 
     // Отрисовка обзора счетов
     function renderAccountsOverview(wallets) {
+        console.log('Rendering accounts overview:', wallets);
         const container = document.getElementById('accounts-overview');
-        if (!container) return;
+        if (!container) {
+            console.error('Accounts overview container not found!');
+            return;
+        }
 
         if (!wallets || wallets.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-4">Нет счетов</p>';
@@ -618,138 +854,133 @@
 
         container.innerHTML = walletsHtml;
         feather.replace();
+        console.log('Accounts overview rendered successfully');
     }
 
     // Отрисовка графиков
     function renderCharts(data) {
-        // График распределения расходов
-        renderExpenseChart(data.expenseDtoList);
+        console.log('Rendering charts with data:', data);
+        // Уничтожаем старые графики перед созданием новых
+        destroyCharts();
 
-        // График движения денег (пока статический)
-        renderCashFlowChart();
+        // Создаем новые графики
+        initializeEmptyCharts();
+        console.log('Charts rendered successfully');
     }
 
-    function renderExpenseChart(expenses) {
-        const ctx = document.getElementById('expenseChart');
-        if (!ctx || !expenses) return;
+    function initializeEmptyCharts() {
+        console.log('Initializing empty charts');
+        // Инициализация пустого графика расходов
+        const expenseCtx = document.getElementById('expenseChart');
+        if (expenseCtx) {
+            // Очищаем canvas перед созданием нового графика
+            expenseCtx.getContext('2d').clearRect(0, 0, expenseCtx.width, expenseCtx.height);
 
-        const categories = expenses.map(e => e.name);
-        const amounts = expenses.map(e => e.amount);
-
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: categories,
-                datasets: [{
-                    data: amounts,
-                    backgroundColor: [
-                        '#ef4444',
-                        '#0ea5e9',
-                        '#f59e0b',
-                        '#8b5cf6',
-                        '#22c55e',
-                        '#64748b'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${formatMoney(value)} (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function renderCashFlowChart() {
-        const ctx = document.getElementById('cashFlowChart');
-        if (!ctx) return;
-
-        // Статические данные для демонстрации
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['1 окт', '5 окт', '10 окт', '15 окт', '20 окт', '25 окт', '30 окт'],
-                datasets: [
-                    {
-                        label: 'Доходы',
-                        data: [25000, 28000, 30000, 32000, 35000, 37000, 40000],
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'Расходы',
-                        data: [18000, 20000, 22000, 25000, 23000, 26000, 28000],
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toLocaleString('ru-RU') + ' ₽';
-                            }
-                        }
-                    }
+            expenseChartInstance = new Chart(expenseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Нет данных'],
+                    datasets: [{
+                        data: [100],
+                        backgroundColor: ['#e5e7eb'],
+                        borderWidth: 0
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('ru-RU') + ' ₽';
-                            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+
+        // Инициализация пустого графика денежных потоков
+        const cashFlowCtx = document.getElementById('cashFlowChart');
+        if (cashFlowCtx) {
+            // Очищаем canvas перед созданием нового графика
+            cashFlowCtx.getContext('2d').clearRect(0, 0, cashFlowCtx.width, cashFlowCtx.height);
+
+            cashFlowChartInstance = new Chart(cashFlowCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        console.log('Empty charts initialized successfully');
     }
 
     // Обновление данных
     function refreshData() {
-        loadFinancialSummary();
-        loadDashboard();
+        console.log('Refresh data called');
+        const username = localStorage.getItem('username');
+        if (username) {
+            loadFinancialSummary();
+            loadDashboard();
+        } else {
+            showAuthPrompt();
+        }
     }
 
     // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded');
         feather.replace();
         AOS.init();
         updateCurrentDate();
-        loadFinancialSummary();
-        loadDashboard();
+        updateAuthStatus();
+
+        // Обработчик для кнопки отмены
+        const cancelButton = document.getElementById('cancel-auth-btn');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', hideAuthPrompt);
+        }
+
+        // Обработчик для клика вне модального окна
+        const authPrompt = document.getElementById('auth-prompt');
+        if (authPrompt) {
+            authPrompt.addEventListener('click', function(e) {
+                if (e.target === authPrompt) {
+                    hideAuthPrompt();
+                }
+            });
+        }
+
+        // Проверяем, есть ли сохраненные учетные данные
+        const username = localStorage.getItem('username');
+        if (username) {
+            console.log('Found saved credentials, auto-login');
+            // Автоматически загружаем данные если пользователь уже авторизован
+            testAuthAndLoadData();
+        } else {
+            console.log('No saved credentials, showing auth prompt');
+            // Показываем окно входа через небольшую задержку для лучшего UX
+            setTimeout(() => {
+                showAuthPrompt();
+            }, 500);
+        }
     });
 </script>
 </body>

@@ -1,0 +1,63 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Игнорируем все в target, кроме конкретных путей
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Логи
+*.log
+logs/
+
+# Файлы операционных систем
+.DS_Store
+Thumbs.db
+
+# IDE
+## IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+## Eclipse/STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache/
+bin/
+
+## NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+## VS Code
+.vscode/
+
+# Системные файлы
+*.bak
+*.tmp
+*.temp
+
+# Конфиденциальные файлы
+application.properties
+*.env
+.env.local
+.secrets/
+config/application-local.properties
+HELP.md
+
+# Gradle (на будущее)
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/

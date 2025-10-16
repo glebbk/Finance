@@ -39,38 +39,38 @@ public class DashBoardService {
     }
 
     public FinancialSummaryDto getFinancialSummaryDto(long id) {
-        LocalDate now = LocalDate.now();
-        LocalDate cur = now.withDayOfMonth(1);
-
-        BigDecimal currentTotalBalance = walletDao.getTotalAvailableBalance(id);
-        BigDecimal balanceChange = calculateBalanceChange(id, currentTotalBalance);
-        BigDecimal balanceChangePercent = calculateChangeBalancePercent(id, currentTotalBalance);
-
-        BigDecimal totalIncome = incomeDao.getTotalIncomeWithDate(id, cur, now);
-        BigDecimal incomeChange = calculateIncomeChange(id, totalIncome);
-        BigDecimal incomeChangePercent = calculateIncomeChangePercent(id, totalIncome);
-
-        BigDecimal totalExpense = expenseDao.getTotalExpenseWithDate(id, cur, now);
-        BigDecimal expenseChange = calculateExpenseChange(id, totalExpense);
-        BigDecimal expenseChangePercent = calculateExpenseChangePercent(id, totalExpense);
-
-        BigDecimal saving = walletDao.getTotalNetWorth(id);
-        BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
-        BigDecimal savingProgress = !savingTarget.equals(BigDecimal.ZERO) ? savingTarget.subtract(saving) : BigDecimal.ZERO;
+//        LocalDate now = LocalDate.now();
+//        LocalDate cur = now.withDayOfMonth(1);
+//
+//        BigDecimal currentTotalBalance = walletDao.getTotalAvailableBalance(id);
+//        BigDecimal balanceChange = calculateBalanceChange(id, currentTotalBalance);
+//        BigDecimal balanceChangePercent = calculateChangeBalancePercent(id, currentTotalBalance);
+//
+//        BigDecimal totalIncome = incomeDao.getTotalIncomeWithDate(id, cur, now);
+//        BigDecimal incomeChange = calculateIncomeChange(id, totalIncome);
+//        BigDecimal incomeChangePercent = calculateIncomeChangePercent(id, totalIncome);
+//
+//        BigDecimal totalExpense = expenseDao.getTotalExpenseWithDate(id, cur, now);
+//        BigDecimal expenseChange = calculateExpenseChange(id, totalExpense);
+//        BigDecimal expenseChangePercent = calculateExpenseChangePercent(id, totalExpense);
+//
+//        BigDecimal saving = walletDao.getTotalNetWorth(id);
+//        BigDecimal savingTarget = savingGoalDao.findTargetAmountById(id).orElse(BigDecimal.ZERO);
+//        BigDecimal savingProgress = !savingTarget.equals(BigDecimal.ZERO) ? savingTarget.subtract(saving) : BigDecimal.ZERO;
 
         return new FinancialSummaryDto(
-                currentTotalBalance,
-                balanceChange,
-                balanceChangePercent,
-                totalIncome,
-                incomeChange,
-                incomeChangePercent,
-                totalExpense,
-                expenseChange,
-                expenseChangePercent,
-                saving,
-                savingProgress,
-                savingTarget
+                BigDecimal.valueOf(150000),  // totalBalance
+                BigDecimal.valueOf(5000),    // balanceChange
+                BigDecimal.valueOf(3.5),     // balanceChangePercent
+                BigDecimal.valueOf(80000),   // totalIncomes
+                BigDecimal.valueOf(2000),    // incomesChange
+                BigDecimal.valueOf(2.5),     // incomesChangePercent
+                BigDecimal.valueOf(65000),   // totalExpenses
+                BigDecimal.valueOf(-1500),   // expensesChange
+                BigDecimal.valueOf(-2.3),    // expensesChangePercent
+                BigDecimal.valueOf(25000),   // saving
+                BigDecimal.valueOf(100000),  // savingTarget
+                BigDecimal.valueOf(25.0)                         // savingProgress
         );
     }
 
