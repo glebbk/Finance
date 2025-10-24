@@ -1,0 +1,39 @@
+/* css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.sidebar {
+    transition: all 0.3s ease;
+}
+
+.dashboard-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.transaction-item:hover {
+    background-color: rgba(241, 245, 249, 0.5);
+}
+
+.loading {
+    display: none;
+}
+
+.loading.show {
+    display: flex;
+}
+
+.error {
+    display: none;
+}
+
+.error.show {
+    display: block;
+}
