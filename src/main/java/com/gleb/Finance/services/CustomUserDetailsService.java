@@ -20,16 +20,24 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        logger.info("Attempting to load user by email: {}", email);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Attempting to load user by username: {}", username);
 
-        User user = userDao.findByEmail(email);
+        // Сначала пробуем найти по username
+        User user = userDao.findByUsername(username);
+
+        // Если не нашли по username, пробуем по email
         if (user == null) {
-            logger.error("User not found with email: {}", email);
-            throw new UsernameNotFoundException("User not found with email: " + email);
+            logger.info("User not found by username, trying email: {}", username);
+            user = userDao.findByEmail(username);
         }
 
-        logger.info("User found: {} with password hash: {}", user.getEmail(), user.getPassword());
+        if (user == null) {
+            logger.error("User not found with username/email: {}", username);
+            throw new UsernameNotFoundException("User not found with username/email: " + username);
+        }
+
+        logger.info("User found: {} (ID: {})", user.getUsername(), user.getId());
         return user;
     }
 }
