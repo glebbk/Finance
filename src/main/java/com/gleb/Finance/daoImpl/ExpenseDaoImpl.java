@@ -7,17 +7,21 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class ExpenseDaoImpl implements ExpenseDao {
 
     private final SessionFactory sessionFactory;
+
+    private final Logger logger = LoggerFactory.getLogger(ExpenseDaoImpl.class);
 
     public ExpenseDaoImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -25,66 +29,63 @@ public class ExpenseDaoImpl implements ExpenseDao {
 
     @Override
     public List<Expense> getAllExpense(long userId) {
-        Session session = sessionFactory.openSession();
+        logger.info("Getting all expenses for user: {}", userId);
         Transaction transaction = null;
-        try {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             User user = session.get(User.class, userId);
 
-            List<Expense> expenseList = Collections.emptyList();
+            List<Expense> list = Collections.emptyList();
+
             if (user != null && user.getExpenses() != null) {
-                expenseList = user.getExpenses();
-                Hibernate.initialize(expenseList);
+                list = user.getExpenses();
+                Hibernate.initialize(list);
             }
 
-            if(transaction != null) {
+            if (transaction != null) {
                 transaction.commit();
             }
-            return expenseList;
+            logger.debug("Method finished for user: {}", userId);
+            return list;
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
+            logger.error("Failed to get expenses for user: {}", userId, e);
             throw new RuntimeException("Error getting Expense list", e);
-        } finally {
-            session.close();
         }
     }
 
     @Override
-    public BigDecimal getTotalExpense(long userId) {
-        Session session = sessionFactory.openSession();
-        try {
-            String hql = "SELECT SUM(e.amount) FROM Expense e WHERE e.user.id = :userId";
+    public Optional<Expense> getExpense(long expenseId) {
+        logger.info("Getting expense with id: {}", expenseId);
+        try (Session session = sessionFactory.openSession()) {
+            Expense expense = session.get(Expense.class, expenseId);
 
-            BigDecimal result = (BigDecimal) session.createQuery(hql)
-                    .setParameter("userId", userId)
-                    .uniqueResult();
-
-            return result != null ? result : BigDecimal.ZERO;
+            logger.debug("Method finished for expenseId: {}", expenseId);
+            return Optional.ofNullable(expense);
         } catch (Exception e) {
-            throw new RuntimeException("Error calculating total expense", e);
-        } finally {
-            session.close();
+            logger.error("Failed to get expense with id: {}", expenseId, e);
+            throw new RuntimeException("Error getting Expense", e);
         }
     }
 
-    @Override
-    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
-        Session session = sessionFactory.openSession();
-        try {
-            String hql = "SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
-                    "WHERE e.user.id = :userId " +
-                    "AND e.expenseDate >= :from " +
-                    "AND e.expenseDate <= :to";
-
-            return (BigDecimal) session.createQuery(hql)
-                    .setParameter("userId", userId)
-                    .setParameter("from", from)
-                    .setParameter("to", to)
-                    .uniqueResult();
-        }  catch (Exception e) {
-            throw new RuntimeException("Error calculating total Expense With Date", e);
-        } finally {
-            session.close();
-        }
-    }
+//    @Override
+//    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
+//        Session session = sessionFactory.openSession();
+//        try {
+//            String hql = "SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+//                    "WHERE e.user.id = :userId " +
+//                    "AND e.expenseDate >= :from " +
+//                    "AND e.expenseDate <= :to";
+//
+//            return (BigDecimal) session.createQuery(hql)
+//                    .setParameter("userId", userId)
+//                    .setParameter("from", from)
+//                    .setParameter("to", to)
+//                    .uniqueResult();
+//        }  catch (Exception e) {
+//            throw new RuntimeException("Error calculating total Expense With Date", e);
+//        } finally {
+//            session.close();
+//        }
+//    }
 }

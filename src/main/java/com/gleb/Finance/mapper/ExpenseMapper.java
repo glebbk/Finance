@@ -3,31 +3,27 @@ package com.gleb.Finance.mapper;
 import com.gleb.Finance.dto.ExpenseDto;
 import com.gleb.Finance.models.Expense;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ExpenseMapper {
 
-    public static ExpenseDto toDto(Expense expense) {
+    public static ExpenseDto getExpenseDto(Expense expense) {
         if (expense == null) {
             return new ExpenseDto();
         }
-
-        ExpenseDto dto = new ExpenseDto();
-        dto.setName(expense.getCategory());
-        dto.setAmount(expense.getAmount());
+        ExpenseDto dto = new ExpenseDto(expense.getCategory(), expense.getAmount());
 
         return dto;
     }
 
-    public static List<ExpenseDto> toDtoList(List<Expense> expenses) {
-        if (expenses == null) {
-            return new ArrayList<>();
+    public static List<ExpenseDto> getExpenseDtoList(List<Expense> list) {
+        if (list == null) {
+            return Collections.emptyList();
         }
-
-        return expenses.stream()
-                .map(ExpenseMapper::toDto)
+        return list.stream()
+                .map(ExpenseMapper::getExpenseDto)
                 .collect(Collectors.toList());
     }
 }
