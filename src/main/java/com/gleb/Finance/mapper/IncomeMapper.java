@@ -3,28 +3,28 @@ package com.gleb.Finance.mapper;
 import com.gleb.Finance.dto.IncomeDto;
 import com.gleb.Finance.models.Income;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class IncomeMapper {
 
-    public static IncomeDto toDto(Income income) {
+    public static IncomeDto getIncomeDto(Income income) {
         if (income == null) {
             return new IncomeDto();
         }
-        IncomeDto incomeDto = new IncomeDto();
-        incomeDto.setAmount(income.getAmount());
-        incomeDto.setName(income.getCategory());
+        IncomeDto incomeDto = new IncomeDto(income.getCategory(), income.getAmount());
+
         return incomeDto;
     }
 
-    public static List<IncomeDto> toDtoList(List<Income> incomeList) {
-        if (incomeList == null) {
-            return new ArrayList<>();
+    public static List<IncomeDto> getIncomeDtoList(List<Income> list) {
+        if (list == null) {
+            return Collections.emptyList();
         }
-        return incomeList.stream()
-                .map(IncomeMapper::toDto)
+        return list.stream()
+                .map(IncomeMapper::getIncomeDto)
                 .collect(Collectors.toList());
     }
+
 }
