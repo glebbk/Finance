@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -68,24 +70,27 @@ public class ExpenseDaoImpl implements ExpenseDao {
         }
     }
 
-//    @Override
-//    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
-//        Session session = sessionFactory.openSession();
-//        try {
-//            String hql = "SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
-//                    "WHERE e.user.id = :userId " +
-//                    "AND e.expenseDate >= :from " +
-//                    "AND e.expenseDate <= :to";
-//
-//            return (BigDecimal) session.createQuery(hql)
-//                    .setParameter("userId", userId)
-//                    .setParameter("from", from)
-//                    .setParameter("to", to)
-//                    .uniqueResult();
-//        }  catch (Exception e) {
-//            throw new RuntimeException("Error calculating total Expense With Date", e);
-//        } finally {
-//            session.close();
-//        }
-//    }
+    @Override
+    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
+        logger.info("Getting total expense with date for user: {}", userId);
+        try(Session session = sessionFactory.openSession()) {
+            String hql = "SELECT SUM(e.amount) FROM Expense e " +
+                    "WHERE e.user.id = :userId " +
+                    "AND e.expenseDate >= :from " +
+                    "AND e.expenseDate <= to";
+
+            BigDecimal result = (BigDecimal) session.createQuery(hql)
+                    .setParameter("userId", userId)
+                    .setParameter("from", from)
+                    .setParameter("to", to)
+                    .uniqueResult();
+
+            logger.info("Method finished for user: {}", userId);
+
+            return result != null ? result : BigDecimal.ZERO;
+        } catch (Exception e) {
+            logger.info("Failed getting total expense with date for user: {}", userId);
+            throw new RuntimeException("Error getting total expense with date", e);
+        }
+    }
 }

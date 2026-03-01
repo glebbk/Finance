@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface IncomeDao {
     List<Income> getAllIncomes(long id);
     Optional<Income> getIncome(long id);
+    BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate to);
 }

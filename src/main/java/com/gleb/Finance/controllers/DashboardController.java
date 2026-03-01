@@ -35,16 +35,15 @@ public class DashboardController {
         }
 
         String username = authentication.getName();
-        System.out.println("Username from authentication: " + username);
+        logger.info("Username from authentication: {}", username);
 
-        // Ищем по username, а не по email
         User user = userDao.findByUsername(username);
 
         if (user != null) {
-            System.out.println("✅ User found: " + user.getUsername() + ", ID: " + user.getId());
+            logger.info("User found: {}, ID: {}", user.getUsername(), user.getId());
             return user.getId();
         } else {
-            System.out.println("❌ User not found with username: " + username);
+            logger.info("User not found with username: {}", username);
             return null;
         }
     }
@@ -64,63 +63,63 @@ public class DashboardController {
         return ResponseEntity.ok(financialSummaryDto);
     }
 
-    @GetMapping("/dashBoard")
-    public ResponseEntity<FinancialDashboardDto> getDashboard() {
-        Long userId = getCurrentUserId();
-        if (userId == null) {
-            logger.warn("Unauthorized access attempt to dashboard");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        logger.info("Getting dashboard for user id: {}", userId);
-        FinancialDashboardDto dashboard = dashBoardService.getFinanceDashboard(userId);
-        logger.info("Dashboard retrieved successfully for user id: {}", userId);
-
-        return ResponseEntity.ok(dashboard);
-    }
-
-    @GetMapping("/wallets")
-    public ResponseEntity<WalletsPageDto> getWallets() {
-        Long userId = getCurrentUserId();
-        if (userId == null) {
-            logger.warn("Unauthorized access attempt to wallets");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        logger.info("Getting Wallets for user id: {}", userId);
-        WalletsPageDto accountOverviewDto = dashBoardService.getWallets(userId);
-        logger.info("Wallets retrieved successfully for user id: {}", userId);
-
-        return ResponseEntity.ok(accountOverviewDto);
-    }
-
-    @GetMapping("/expenses")
-    public ResponseEntity<ExpensePageDto> getExpenses() {
-        Long userId = getCurrentUserId();
-        if (userId == null) {
-            logger.warn("Unauthorized access attempt to expenses");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        logger.info("Getting Expenses for user id: {}", userId);
-        ExpensePageDto expensePageDto = dashBoardService.getExpenses(userId);
-        logger.info("Expenses retrieved successfully for user id: {}", userId);
-
-        return ResponseEntity.ok(expensePageDto);
-    }
-
-    @GetMapping("/incomes")
-    public ResponseEntity<IncomePageDto> getIncomes() {
-        Long userId = getCurrentUserId();
-        if (userId == null) {
-            logger.warn("Unauthorized access attempt to incomes");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        logger.info("Getting Incomes for user id: {}", userId);
-        IncomePageDto incomePageDto = dashBoardService.getIncomes(userId);
-        logger.info("Incomes retrieved successfully for user id: {}", userId);
-
-        return ResponseEntity.ok(incomePageDto);
-    }
+//    @GetMapping("/dashBoard")
+//    public ResponseEntity<FinancialDashboardDto> getDashboard() {
+//        Long userId = getCurrentUserId();
+//        if (userId == null) {
+//            logger.warn("Unauthorized access attempt to dashboard");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        logger.info("Getting dashboard for user id: {}", userId);
+//        FinancialDashboardDto dashboard = dashBoardService.getFinanceDashboard(userId);
+//        logger.info("Dashboard retrieved successfully for user id: {}", userId);
+//
+//        return ResponseEntity.ok(dashboard);
+//    }
+//
+//    @GetMapping("/wallets")
+//    public ResponseEntity<WalletsPageDto> getWallets() {
+//        Long userId = getCurrentUserId();
+//        if (userId == null) {
+//            logger.warn("Unauthorized access attempt to wallets");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        logger.info("Getting Wallets for user id: {}", userId);
+//        WalletsPageDto accountOverviewDto = dashBoardService.getWallets(userId);
+//        logger.info("Wallets retrieved successfully for user id: {}", userId);
+//
+//        return ResponseEntity.ok(accountOverviewDto);
+//    }
+//
+//    @GetMapping("/expenses")
+//    public ResponseEntity<ExpensePageDto> getExpenses() {
+//        Long userId = getCurrentUserId();
+//        if (userId == null) {
+//            logger.warn("Unauthorized access attempt to expenses");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        logger.info("Getting Expenses for user id: {}", userId);
+//        ExpensePageDto expensePageDto = dashBoardService.getExpenses(userId);
+//        logger.info("Expenses retrieved successfully for user id: {}", userId);
+//
+//        return ResponseEntity.ok(expensePageDto);
+//    }
+//
+//    @GetMapping("/incomes")
+//    public ResponseEntity<IncomePageDto> getIncomes() {
+//        Long userId = getCurrentUserId();
+//        if (userId == null) {
+//            logger.warn("Unauthorized access attempt to incomes");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        logger.info("Getting Incomes for user id: {}", userId);
+//        IncomePageDto incomePageDto = dashBoardService.getIncomes(userId);
+//        logger.info("Incomes retrieved successfully for user id: {}", userId);
+//
+//        return ResponseEntity.ok(incomePageDto);
+//    }
 }

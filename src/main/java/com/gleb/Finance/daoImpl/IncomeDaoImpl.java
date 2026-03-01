@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -65,41 +67,26 @@ public class IncomeDaoImpl implements IncomeDao {
             throw new RuntimeException("Error getting income", e);
         }
     }
-//    @Override
-//    public BigDecimal getTotalIncome(long id) {
-//        Session session = sessionFactory.openSession();
-//        try {
-//            String hql = "SELECT SUM(i.amount) FROM Income i WHERE i.user.id = :userId";
-//
-//            BigDecimal result = (BigDecimal) session.createQuery(hql)
-//                    .setParameter("userId", id)
-//                    .uniqueResult();
-//
-//            return result != null ? result :BigDecimal.ZERO;
-//        } catch (Exception e) {
-//            throw new RuntimeException("Error calculating total income", e);
-//        } finally {
-//            session.close();
-//        }
-//    }
-//
-//    @Override
-//    public BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate to) {
-//        Session session = sessionFactory.openSession();
-//        try {
-//            String hql = "SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
-//                    "WHERE i.user.id = :userId " +
-//                    "AND i.incomeDate >= :from " +
-//                    "AND i.incomeDate <= :to";
-//            return (BigDecimal) session.createQuery(hql)
-//                    .setParameter("userId", userId)
-//                    .setParameter("from", from)
-//                    .setParameter("to", to)
-//                    .uniqueResult();
-//        }  catch (Exception e) {
-//            throw new RuntimeException("Error calculating total Incomes With Date", e);
-//        } finally {
-//            session.close();
-//        }
-//    }
+
+    @Override
+    public BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate to) {
+        logger.info("Getting total income with date for user: {}", userId);
+        try(Session session = sessionFactory.openSession()) {
+            String hql = "SELECT SUM(i.amount) FROM Income i " +
+                    "WHERE i.user.id = :userId " +
+                    "AND i.incomeDate >= :from " +
+                    "AND i.incomeDate <= to";
+            BigDecimal result = (BigDecimal) session.createQuery(hql)
+                    .setParameter("userId", userId)
+                    .setParameter("from", from)
+                    .setParameter("to", to);
+
+            logger.info("Method finished for user: {}", userId);
+
+            return result != null ? result : BigDecimal.ZERO;
+        } catch(Exception e) {
+            logger.info("Failed getting total income with date for user: {}", userId);
+            throw new RuntimeException("Error getting total income with date", e);
+        }
+    }
 }
