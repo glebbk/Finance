@@ -69,17 +69,18 @@ public class IncomeDaoImpl implements IncomeDao {
     }
 
     @Override
-    public BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate to) {
+    public BigDecimal getTotalIncomeWithDate(long userId, LocalDate from, LocalDate endDate) {
         logger.info("Getting total income with date for user: {}", userId);
         try(Session session = sessionFactory.openSession()) {
             String hql = "SELECT SUM(i.amount) FROM Income i " +
                     "WHERE i.user.id = :userId " +
                     "AND i.incomeDate >= :from " +
-                    "AND i.incomeDate <= to";
+                    "AND i.incomeDate <= :endDate";
             BigDecimal result = (BigDecimal) session.createQuery(hql)
                     .setParameter("userId", userId)
                     .setParameter("from", from)
-                    .setParameter("to", to);
+                    .setParameter("endDate", endDate)
+                    .uniqueResult();
 
             logger.info("Method finished for user: {}", userId);
 

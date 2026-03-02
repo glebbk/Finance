@@ -71,18 +71,18 @@ public class ExpenseDaoImpl implements ExpenseDao {
     }
 
     @Override
-    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to) {
+    public BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate endDate) {
         logger.info("Getting total expense with date for user: {}", userId);
         try(Session session = sessionFactory.openSession()) {
             String hql = "SELECT SUM(e.amount) FROM Expense e " +
                     "WHERE e.user.id = :userId " +
                     "AND e.expenseDate >= :from " +
-                    "AND e.expenseDate <= to";
+                    "AND e.expenseDate <= :endDate";
 
             BigDecimal result = (BigDecimal) session.createQuery(hql)
                     .setParameter("userId", userId)
                     .setParameter("from", from)
-                    .setParameter("to", to)
+                    .setParameter("endDate", endDate)
                     .uniqueResult();
 
             logger.info("Method finished for user: {}", userId);

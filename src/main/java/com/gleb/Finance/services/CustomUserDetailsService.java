@@ -23,10 +23,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         logger.info("Attempting to load user by username: {}", username);
 
-        // Сначала пробуем найти по username
         User user = userDao.findByUsername(username);
 
-        // Если не нашли по username, пробуем по email
         if (user == null) {
             logger.info("User not found by username, trying email: {}", username);
             user = userDao.findByEmail(username);

@@ -1,9 +1,10 @@
-// AuthController.java - ПОЛНАЯ ВЕРСИЯ
 package com.gleb.Finance.controllers;
 
 import com.gleb.Finance.dao.UserDao;
 import com.gleb.Finance.dto.RegisterRequest;
 import com.gleb.Finance.models.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,23 +16,18 @@ public class AuthController {
 
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
+    private final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(UserDao userDao, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<String> authStatus() {
-        return ResponseEntity.ok("Auth endpoint is working");
-    }
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
         try {
-            System.out.println("Registration attempt for: " + registerRequest.getEmail());
+            logger.info("Registration attempt for: {}", registerRequest.getEmail());
 
-            // Проверяем, существует ли пользователь с таким email
             if (userDao.findByEmail(registerRequest.getEmail()) != null) {
                 return ResponseEntity.badRequest()
                         .body("Пользователь с таким email уже существует");
@@ -49,12 +45,12 @@ public class AuthController {
             );
 
             User savedUser = userDao.save(user);
-            System.out.println("User registered successfully: " + savedUser.getUsername());
+            logger.info("User registered successfully: {}", savedUser.getUsername());
 
             return ResponseEntity.ok("Пользователь успешно зарегистрирован");
 
         } catch (Exception e) {
-            System.out.println("Registration error: " + e.getMessage());
+            logger.info("Registration error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Ошибка при регистрации: " + e.getMessage());
         }

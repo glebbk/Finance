@@ -78,7 +78,7 @@ public class WalletDaoImpl implements WalletDao {
     public BigDecimal getTotalNetWorth(long userId) {
         logger.info("Getting total net worth balance for user: {}", userId);
         try(Session session = sessionFactory.openSession()) {
-            String hql = "SELECT SUM(w.balance) FROM Wallet w" +
+            String hql = "SELECT SUM(w.balance) FROM Wallet w " +
                     "WHERE w.user.id = :userId AND w.includeInNetWorth = true";
 
             BigDecimal result = (BigDecimal) session.createQuery(hql)
