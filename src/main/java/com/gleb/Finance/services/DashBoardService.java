@@ -23,8 +23,9 @@ public class DashBoardService {
     }
 
     public FinancialSummaryDto getFinancialSummaryDto(long userId) {
-        LocalDate now = LocalDate.now().minusMonths(1);
-        LocalDate cur = now.withDayOfMonth(1);
+        //TODO позже поменять (когда накидаю в базу норм данных)
+        LocalDate now = LocalDate.now().plusYears(1);
+        LocalDate cur = now.minusYears(1);
 
         BigDecimal totalBalance = walletService.getTotalAvailableBalance(userId);
 

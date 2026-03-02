@@ -64,6 +64,7 @@ public class SavingGoalDaoImpl implements SavingGoalDao {
                     "AND sg.completed = false ORDER BY sg.deadline ASC";
             BigDecimal result = (BigDecimal) session.createQuery(hql)
                     .setParameter("userId", userId)
+                    .setMaxResults(1)
                     .uniqueResult();
 
             logger.info("Method finished for user: {}", userId);

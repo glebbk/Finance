@@ -1,112 +1,81 @@
-// js/app.js
-// Функция для проверки аутентификации и загрузки данных
-async function testAuthAndLoadData() {
-    try {
-        console.log('=== START testAuthAndLoadData ===');
-        showLoading(true);
-        hideError();
-
-        const username = localStorage.getItem('username');
-        const password = localStorage.getItem('password');
-        console.log('Credentials from localStorage:', { username, password: password ? '***' : 'empty' });
-
-        // Пробуем сделать простой запрос для проверки аутентификации
-        console.log('Making test request to financialSummary...');
-        const testData = await makeAuthenticatedRequest(`${API_BASE_URL}/dashboard/financialSummary`);
-        console.log('✅ Authentication successful, received data:', testData);
-
-        // Если успешно - загружаем все данные
-        console.log('Loading financial summary...');
-        await loadFinancialSummary();
-        console.log('✅ Financial summary loaded');
-
-        console.log('Loading dashboard...');
-        await loadDashboard();
-        console.log('✅ Dashboard loaded');
-
-        // Скрываем окно авторизации после успешного входа
-        console.log('Calling hideAuthPrompt...');
-        hideAuthPrompt();
-        showError(''); // Очищаем возможные предыдущие ошибки
-        console.log('✅ Authentication flow completed successfully');
-
-    } catch (error) {
-        console.error('❌ Authentication failed:', error);
-        // Если аутентификация не удалась
-        localStorage.removeItem('username');
-        localStorage.removeItem('password');
-        updateAuthStatus();
-
-        if (error.message.includes('401') || error.message.includes('Неверные учетные данные')) {
-            showError('Неверный email или пароль');
-            showAuthPrompt(); // Показываем окно входа снова
-        } else {
-            showError('Ошибка авторизации: ' + error.message);
-        }
-    } finally {
-        showLoading(false);
-        console.log('=== END testAuthAndLoadData ===');
-    }
-}
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
+document.addEventListener('DOMContentLoaded', () => {
     feather.replace();
-    AOS.init();
-    updateCurrentDate();
-    updateAuthStatus();
+    loadData();
+});
 
-    // Обработчик для кнопки отмены
-    const cancelButton = document.getElementById('cancel-auth-btn');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', hideAuthPrompt);
+const authModal = document.getElementById('auth-prompt');
+const fmt = (v) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(v || 0);
+
+async function loadData() {
+    const creds = localStorage.getItem('user_auth');
+    if (!creds) {
+        authModal.classList.remove('hidden');
+        return;
     }
 
-    // Обработчик для клика вне модального окна
-    const authPrompt = document.getElementById('auth-prompt');
-    if (authPrompt) {
-        authPrompt.addEventListener('click', function(e) {
-            if (e.target === authPrompt) {
-                hideAuthPrompt();
-            }
+    try {
+        // Убедись, что путь "/" совпадает с твоим контроллером.
+        // Если есть префикс, например /api, то пиши '/api/financialSummary'
+        const response = await fetch('/financialSummary', {
+            headers: { 'Authorization': `Basic ${creds}` }
         });
-    }
 
-    // Обработчик формы входа
-    document.getElementById('login-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        console.log('Login form submitted');
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-
-        if (!email || !password) {
-            showError('Пожалуйста, заполните все поля');
+        if (response.status === 401) {
+            localStorage.removeItem('user_auth');
+            authModal.classList.remove('hidden');
             return;
         }
 
-        console.log('Saving credentials to localStorage');
-        // Сохраняем учетные данные
-        localStorage.setItem('username', email);
-        localStorage.setItem('password', password);
+        const data = await response.json();
 
-        updateAuthStatus();
+        // 1. Общий баланс
+        document.getElementById('data-totalBalance').innerText = fmt(data.totalBalance);
 
-        // Пробуем загрузить данные (функция сама закроет окно при успехе)
-        await testAuthAndLoadData();
-    });
+        // 2. Доходы
+        document.getElementById('data-totalIncomes').innerText = fmt(data.totalIncomes);
 
-    // Проверяем, есть ли сохраненные учетные данные
-    const username = localStorage.getItem('username');
-    if (username) {
-        console.log('Found saved credentials, auto-login');
-        // Автоматически загружаем данные если пользователь уже авторизован
-        testAuthAndLoadData();
-    } else {
-        console.log('No saved credentials, showing auth prompt');
-        // Показываем окно входа через небольшую задержку для лучшего UX
-        setTimeout(() => {
-            showAuthPrompt();
-        }, 500);
+        // 3. Расходы
+        document.getElementById('data-totalExpenses').innerText = fmt(data.totalExpenses);
+
+        // 4. Сбережения
+        document.getElementById('data-saving').innerText = fmt(data.saving);
+
+        // ЛОГИКА ДЛЯ ЦЕЛИ (null check)
+        const targetBlock = document.getElementById('target-section');
+        const percentBadge = document.getElementById('data-percent');
+
+        if (data.savingTarget === null || data.savingTarget === 0) {
+            targetBlock.classList.add('hidden'); // Скрываем подпись цели
+            percentBadge.classList.add('hidden'); // Скрываем процент
+        } else {
+            targetBlock.classList.remove('hidden');
+            percentBadge.classList.remove('hidden');
+            document.getElementById('data-savingTarget').innerText = fmt(data.savingTarget);
+
+            const p = Math.round((data.saving / data.savingTarget) * 100);
+            percentBadge.innerText = p + '%';
+        }
+
+        document.getElementById('user-display-name').innerText = localStorage.getItem('user_login');
+        authModal.classList.add('hidden');
+        feather.replace();
+
+    } catch (err) {
+        console.error("Ошибка подключения к бэкенду. Проверь URL в fetch().", err);
     }
+}
+
+// Форма входа
+document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const l = document.getElementById('auth-login').value;
+    const p = document.getElementById('auth-password').value;
+    localStorage.setItem('user_auth', btoa(`${l}:${p}`));
+    localStorage.setItem('user_login', l);
+    loadData();
 });
+
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
