@@ -3,187 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Финансовый Центр | Дашборд</title>
+    <title>Финансовый Центр</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
         .money-card { transition: all 0.3s ease; }
-        .money-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .money-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
 
-<div id="auth-prompt" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 border border-gray-100">
-        <h3 class="text-2xl font-bold mb-6 text-center text-gray-800">Вход в систему</h3>
+<div id="auth-prompt" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-96">
+        <h3 class="text-2xl font-bold mb-6 text-center">Вход</h3>
         <form id="login-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email или логин</label>
-                <input type="text" id="auth-login" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition" placeholder="admin" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-                <input type="password" id="auth-password" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition">
-                Войти
-            </button>
+            <input type="text" id="auth-login" placeholder="Логин" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:border-blue-500" required>
+            <input type="password" id="auth-password" placeholder="Пароль" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:border-blue-500" required>
+            <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700">Войти</button>
         </form>
     </div>
 </div>
 
 <div class="flex h-screen overflow-hidden">
-    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div class="p-6 border-b border-gray-100 flex items-center space-x-3">
+    <aside class="w-64 bg-white border-r flex flex-col">
+        <div class="p-6 border-b flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-100">
                 <i data-feather="trending-up" class="text-white w-6 h-6"></i>
             </div>
-            <span class="text-xl font-bold tracking-tight">FinCenter</span>
+            <span class="text-xl font-bold">FinCenter</span>
         </div>
         <nav class="flex-1 p-4">
             <a href="#" class="flex items-center space-x-3 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-semibold">
                 <i data-feather="grid" class="w-5 h-5"></i>
-                <span>Обзор</span>
+                <span>Главная</span>
             </a>
         </nav>
-        <div class="p-6 border-t border-gray-50">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                    <i data-feather="user"></i>
-                </div>
-                <div class="overflow-hidden">
-                    <p id="user-display-name" class="font-bold text-sm truncate">Гость</p>
-                    <button onclick="logout()" class="text-xs text-red-500 font-medium hover:underline">Выйти</button>
-                </div>
-            </div>
+        <div class="p-6 border-t">
+            <p id="user-display-name" class="font-bold text-sm truncate text-gray-800">Гость</p>
+            <button onclick="logout()" class="text-xs text-red-500 hover:underline">Выйти</button>
         </div>
     </aside>
 
     <main class="flex-1 overflow-auto">
-        <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 py-6 px-8 sticky top-0 z-10 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-800">Финансовый отчет</h1>
-            <button onclick="loadSummaryData()" class="p-2.5 bg-gray-50 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition">
+        <header class="bg-white/80 backdrop-blur-md border-b py-6 px-8 sticky top-0 z-10 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Обзор финансов</h1>
+            <button onclick="loadDashboardData()" class="p-2 bg-gray-50 rounded-xl text-gray-500 hover:text-blue-600">
                 <i data-feather="refresh-cw" class="w-5 h-5"></i>
             </button>
         </header>
 
         <div class="p-8">
-            <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="money-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="p-3 bg-blue-50 rounded-xl w-fit mb-4"><i data-feather="briefcase" class="text-blue-600 w-6 h-6"></i></div>
-                    <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Текущий баланс</p>
-                    <p id="totalBalance" class="text-3xl font-black mt-1 text-gray-900">0 ₽</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Баланс</p>
+                    <p id="data-totalBalance" class="text-3xl font-black mt-1">0 ₽</p>
                 </div>
-
                 <div class="money-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="p-3 bg-green-50 rounded-xl w-fit mb-4"><i data-feather="arrow-up-right" class="text-green-600 w-6 h-6"></i></div>
-                    <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Доходы</p>
-                    <p id="totalIncomes" class="text-3xl font-black mt-1 text-green-600">0 ₽</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest text-green-500">Доходы</p>
+                    <p id="data-totalIncomes" class="text-3xl font-black mt-1 text-green-600">0 ₽</p>
                 </div>
-
                 <div class="money-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="p-3 bg-red-50 rounded-xl w-fit mb-4"><i data-feather="arrow-down-left" class="text-red-600 w-6 h-6"></i></div>
-                    <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Расходы</p>
-                    <p id="totalExpenses" class="text-3xl font-black mt-1 text-red-600">0 ₽</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest text-red-500">Расходы</p>
+                    <p id="data-totalExpenses" class="text-3xl font-black mt-1 text-red-600">0 ₽</p>
                 </div>
-
                 <div class="money-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-purple-50 rounded-xl"><i data-feather="target" class="text-purple-600 w-6 h-6"></i></div>
-                        <span id="target-percent" class="text-xs font-bold bg-purple-100 text-purple-700 px-2 py-1 rounded-lg hidden">0%</span>
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Сбережения</p>
+                        <span id="target-percent" class="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold hidden">0%</span>
                     </div>
-                    <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Общий баланс</p>
-                    <p id="saving" class="text-3xl font-black mt-1 text-gray-900">0 ₽</p>
-
+                    <p id="data-saving" class="text-3xl font-black mt-1">0 ₽</p>
                     <div id="target-section" class="mt-4 pt-4 border-t border-gray-50 hidden">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400 font-medium">Ваша цель:</span>
-                            <span id="savingTarget" class="font-bold text-purple-600 text-right">0 ₽</span>
-                        </div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">Цель</p>
+                        <p id="data-savingTarget" class="text-sm font-bold text-purple-600">0 ₽</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Динамика потоков</h3>
+                        <p class="text-sm text-gray-400">Накопленные доходы и расходы за месяц</p>
+                    </div>
+                    <div class="h-[350px]">
+                        <canvas id="cashFlowChart"></canvas>
                     </div>
                 </div>
 
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Распределение финансов</h3>
+                        <p class="text-sm text-gray-400">Распределение по категориям</p>
+                    </div>
+                    <div class="h-[350px] relative">
+                        <canvas id="walletPieChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 </div>
 
+<script src="/js/utils.js"></script>
+<script src="/js/charts.js"></script>
+<script src="/js/app.js"></script>
 <script>
-    const API_URL = '/api/dashboard/financialSummary';
-    const fmt = (v) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(v || 0);
-
-    document.addEventListener('DOMContentLoaded', () => {
-        feather.replace();
-        loadSummaryData();
-    });
-
-    async function loadSummaryData() {
-        const auth = localStorage.getItem('user_auth');
-        if (!auth) {
-            document.getElementById('auth-prompt').classList.remove('hidden');
-            return;
-        }
-
-        try {
-            const response = await fetch(API_URL, {
-                headers: { 'Authorization': `Basic ${auth}` }
-            });
-
-            if (response.status === 401) {
-                logout();
-                return;
-            }
-
-            const data = await response.json();
-            updateUI(data);
-
-            document.getElementById('user-display-name').innerText = localStorage.getItem('user_login');
-            document.getElementById('auth-prompt').classList.add('hidden');
+    // Инициализация иконок после загрузки
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof feather !== 'undefined') {
             feather.replace();
-        } catch (err) {
-            console.error("Ошибка связи с сервером:", err);
         }
-    }
-
-    function updateUI(data) {
-        document.getElementById('totalBalance').innerText = fmt(data.totalBalance);
-        document.getElementById('totalIncomes').innerText = fmt(data.totalIncomes);
-        document.getElementById('totalExpenses').innerText = fmt(data.totalExpenses);
-        document.getElementById('saving').innerText = fmt(data.saving);
-
-        const targetSection = document.getElementById('target-section');
-        const percentBadge = document.getElementById('target-percent');
-
-        if (data.savingTarget === null || data.savingTarget === 0) {
-            targetSection.classList.add('hidden');
-            percentBadge.classList.add('hidden');
-        } else {
-            targetSection.classList.remove('hidden');
-            percentBadge.classList.remove('hidden');
-            document.getElementById('savingTarget').innerText = fmt(data.savingTarget);
-
-            const p = Math.round((data.saving / data.savingTarget) * 100);
-            percentBadge.innerText = p + '%';
-        }
-    }
-
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const login = document.getElementById('auth-login').value;
-        const pass = document.getElementById('auth-password').value;
-
-        localStorage.setItem('user_auth', btoa(`${login}:${pass}`));
-        localStorage.setItem('user_login', login);
-        loadSummaryData();
     });
-
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
 </script>
-
 </body>
 </html>

@@ -11,4 +11,5 @@ public interface ExpenseDao {
     List<Expense> getAllExpense(long userId);
     Optional<Expense> getExpense(long expenseId);
     BigDecimal getTotalExpenseWithDate(long userId, LocalDate from, LocalDate to);
+    List<Expense> getExpensesByDateRange(long userId, LocalDate startDate, LocalDate endDate);
 }

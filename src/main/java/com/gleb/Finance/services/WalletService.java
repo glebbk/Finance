@@ -1,11 +1,13 @@
 package com.gleb.Finance.services;
 
 import com.gleb.Finance.daoImpl.WalletDaoImpl;
+import com.gleb.Finance.models.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class WalletService {
@@ -26,5 +28,10 @@ public class WalletService {
     public BigDecimal getTotalNetWorth(long userId) {
         logger.info("Getting total net worth in service for user: {}", userId);
         return walletDao.getTotalNetWorth(userId);
+    }
+
+    public List<Wallet> getAllWallets(long userId) {
+        logger.info("Getting all wallet for user: {}", userId);
+        return walletDao.getAllWallets(userId);
     }
 }

@@ -90,4 +90,28 @@ public class IncomeDaoImpl implements IncomeDao {
             throw new RuntimeException("Error getting total income with date", e);
         }
     }
+
+    @Override
+    public List<Income> getIncomesByDateRange(long userId, LocalDate startDate, LocalDate endDate) {
+        logger.info("Getting incomes by date range for user: {}", userId);
+        try(Session session = sessionFactory.openSession()) {
+            String hql = "FROM Income i " +
+                    "WHERE i.user.id = :userId " +
+                    "AND i.incomeDate >= :startDate " +
+                    "AND i.incomeDate <= :endDate";
+
+            List<Income> result = session.createQuery(hql, Income.class)
+                    .setParameter("userId", userId)
+                    .setParameter("startDate", startDate)
+                    .setParameter("endDate", endDate)
+                    .list();
+
+            logger.info("Method finished for user with id: {}", userId);
+
+            return result;
+        } catch (Exception e) {
+            logger.info("Failed getting incomes by date range for user: {}", userId);
+            throw new RuntimeException("Error getting incomes by date range", e);
+        }
+    }
 }

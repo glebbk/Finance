@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -61,6 +63,36 @@ public class DashboardController {
         logger.info("FinancialSummary retrieved successfully for user id: {}", userId);
 
         return ResponseEntity.ok(financialSummaryDto);
+    }
+
+    @GetMapping("/cashFlow")
+    public ResponseEntity<List<CashFlowPointDto>> getCashFlow() {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            logger.warn("Unauthorized access attempt to cashFlow");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        logger.info("Getting cashFlow for user id: {}", userId);
+        List<CashFlowPointDto> cashFlowPointDtoList = dashBoardService.getCashFlowDtoList(userId);
+        logger.info("CashFlow retrieved successfully for user id: {}", userId);
+
+        return ResponseEntity.ok(cashFlowPointDtoList);
+    }
+
+    @GetMapping("/walletsDistribution")
+    public ResponseEntity<List<WalletBalanceByCategoryDto>> getWalletDistribution() {
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            logger.warn("Unauthorized access attempt to walletDistribution");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        logger.info("Getting walletDistribution for user id: {}", userId);
+        List<WalletBalanceByCategoryDto> walletBalanceByCategoryDtoList = dashBoardService.getWalletsBalanceByCategoryDtoList(userId);
+        logger.info("WalletDistribution retrieved successfully for user id: {}", userId);
+
+        return ResponseEntity.ok(walletBalanceByCategoryDtoList);
     }
 
 //    @GetMapping("/dashBoard")

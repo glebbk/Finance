@@ -1,81 +1,81 @@
+const API_BASE = '/api/dashboard';
+
 document.addEventListener('DOMContentLoaded', () => {
     feather.replace();
-    loadData();
+    loadDashboardData();
 });
 
-const authModal = document.getElementById('auth-prompt');
-const fmt = (v) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(v || 0);
-
-async function loadData() {
+async function loadDashboardData() {
     const creds = localStorage.getItem('user_auth');
     if (!creds) {
-        authModal.classList.remove('hidden');
+        document.getElementById('auth-prompt').classList.remove('hidden');
         return;
     }
 
+    const headers = { 'Authorization': `Basic ${creds}` };
+
     try {
-        // Убедись, что путь "/" совпадает с твоим контроллером.
-        // Если есть префикс, например /api, то пиши '/api/financialSummary'
-        const response = await fetch('/financialSummary', {
-            headers: { 'Authorization': `Basic ${creds}` }
-        });
+        // Загружаем всё параллельно
+        const [resSummary, resChart, resWallets] = await Promise.all([
+            fetch(`${API_BASE}/financialSummary`, { headers }),
+            fetch(`${API_BASE}/cashFlow`, { headers }),
+            fetch(`${API_BASE}/walletsDistribution`, { headers })
+        ]);
 
-        if (response.status === 401) {
-            localStorage.removeItem('user_auth');
-            authModal.classList.remove('hidden');
-            return;
-        }
+        if (resSummary.status === 401) return logout();
 
-        const data = await response.json();
+        const summary = await resSummary.json();
+        const chartData = await resChart.json();
+        const walletData = await resWallets.json();
 
-        // 1. Общий баланс
-        document.getElementById('data-totalBalance').innerText = fmt(data.totalBalance);
-
-        // 2. Доходы
-        document.getElementById('data-totalIncomes').innerText = fmt(data.totalIncomes);
-
-        // 3. Расходы
-        document.getElementById('data-totalExpenses').innerText = fmt(data.totalExpenses);
-
-        // 4. Сбережения
-        document.getElementById('data-saving').innerText = fmt(data.saving);
-
-        // ЛОГИКА ДЛЯ ЦЕЛИ (null check)
-        const targetBlock = document.getElementById('target-section');
-        const percentBadge = document.getElementById('data-percent');
-
-        if (data.savingTarget === null || data.savingTarget === 0) {
-            targetBlock.classList.add('hidden'); // Скрываем подпись цели
-            percentBadge.classList.add('hidden'); // Скрываем процент
-        } else {
-            targetBlock.classList.remove('hidden');
-            percentBadge.classList.remove('hidden');
-            document.getElementById('data-savingTarget').innerText = fmt(data.savingTarget);
-
-            const p = Math.round((data.saving / data.savingTarget) * 100);
-            percentBadge.innerText = p + '%';
-        }
+        // Обновляем UI компоненты
+        updateSummaryTiles(summary);
+        renderCashFlowChart(chartData);
+        renderWalletChart(walletData); // Новый вызов
 
         document.getElementById('user-display-name').innerText = localStorage.getItem('user_login');
-        authModal.classList.add('hidden');
+        document.getElementById('auth-prompt').classList.add('hidden');
         feather.replace();
 
     } catch (err) {
-        console.error("Ошибка подключения к бэкенду. Проверь URL в fetch().", err);
+        console.error("Критическая ошибка загрузки:", err);
     }
 }
 
-// Форма входа
+function updateSummaryTiles(data) {
+    const fmt = (v) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(v || 0);
+
+    document.getElementById('data-totalBalance').innerText = fmt(data.totalBalance);
+    document.getElementById('data-totalIncomes').innerText = fmt(data.totalIncomes);
+    document.getElementById('data-totalExpenses').innerText = fmt(data.totalExpenses);
+    document.getElementById('data-saving').innerText = fmt(data.saving);
+
+    const targetSec = document.getElementById('target-section');
+    const badge = document.getElementById('target-percent');
+
+    if (!data.savingTarget || data.savingTarget === 0) {
+        targetSec.classList.add('hidden');
+        badge.classList.add('hidden');
+    } else {
+        targetSec.classList.remove('hidden');
+        badge.classList.remove('hidden');
+        document.getElementById('data-savingTarget').innerText = fmt(data.savingTarget);
+        const p = Math.round((data.saving / data.savingTarget) * 100);
+        badge.innerText = p + '%';
+    }
+}
+
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
+
+// Форма входа (остается без изменений)
 document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const l = document.getElementById('auth-login').value;
     const p = document.getElementById('auth-password').value;
     localStorage.setItem('user_auth', btoa(`${l}:${p}`));
     localStorage.setItem('user_login', l);
-    loadData();
+    loadDashboardData();
 });
-
-function logout() {
-    localStorage.clear();
-    location.reload();
-}

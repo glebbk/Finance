@@ -93,4 +93,28 @@ public class ExpenseDaoImpl implements ExpenseDao {
             throw new RuntimeException("Error getting total expense with date", e);
         }
     }
+
+    @Override
+    public List<Expense> getExpensesByDateRange(long userId, LocalDate startDate, LocalDate endDate) {
+        logger.info("Getting expense with date range for user: {}", userId);
+        try(Session session = sessionFactory.openSession()) {
+            String hql = "FROM Expense e " +
+                    "WHERE e.user.id = :userId " +
+                    "AND e.expenseDate >= :startDate " +
+                    "AND e.expenseDate <= :endDate";
+
+            List<Expense> result = session.createQuery(hql, Expense.class)
+                    .setParameter("userId",userId)
+                    .setParameter("startDate", startDate)
+                    .setParameter("endDate", endDate)
+                    .list();
+
+            logger.info("Method finished for user with id: {}", userId);
+
+            return result;
+        } catch (Exception e) {
+            logger.info("Failed getting expense with date range for user: {}", userId);
+            throw new RuntimeException("Error getting expense with date range", e);
+        }
+    }
 }

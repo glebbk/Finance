@@ -1,11 +1,18 @@
 package com.gleb.Finance.services;
 
+import com.gleb.Finance.dto.CashFlowPointDto;
 import com.gleb.Finance.dto.FinancialSummaryDto;
+import com.gleb.Finance.dto.WalletBalanceByCategoryDto;
+import com.gleb.Finance.models.Expense;
+import com.gleb.Finance.models.Income;
+import com.gleb.Finance.models.Wallet;
+import com.gleb.Finance.models.WalletType;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DashBoardService {
@@ -24,8 +31,8 @@ public class DashBoardService {
 
     public FinancialSummaryDto getFinancialSummaryDto(long userId) {
         //TODO позже поменять (когда накидаю в базу норм данных)
-        LocalDate now = LocalDate.now().plusYears(1);
-        LocalDate cur = now.minusYears(1);
+        LocalDate now = LocalDate.now();
+        LocalDate cur = LocalDate.now().minusMonths(1);
 
         BigDecimal totalBalance = walletService.getTotalAvailableBalance(userId);
 
@@ -44,6 +51,64 @@ public class DashBoardService {
                 savings,
                 goal.orElse(null)
         );
+    }
+
+    public List<CashFlowPointDto> getCashFlowDtoList(long userId) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusMonths(1);
+
+        Map<LocalDate, CashFlowPointDto> map = new LinkedHashMap<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            map.put(date, new CashFlowPointDto(date, BigDecimal.ZERO, BigDecimal.ZERO));
+        }
+
+        List<Income> incomeList = incomeService.getIncomesByDateRange(userId, startDate, endDate);
+        for (Income income : incomeList) {
+            CashFlowPointDto point = map.get(income.getIncomeDate());
+            if (point != null) {
+                point.setIncomes(point.getIncomes().add(income.getAmount()));
+            }
+        }
+
+        List<Expense> expenses = expenseService.getExpensesByDateRange(userId, startDate, endDate);
+        for (Expense expense : expenses) {
+            CashFlowPointDto point = map.get(expense.getExpenseDate());
+            if (point != null) {
+                point.setExpenses(point.getExpenses().add(expense.getAmount().abs()));
+            }
+        }
+
+        BigDecimal runningIncome = BigDecimal.ZERO;
+        BigDecimal runningExpense = BigDecimal.ZERO;
+
+        List<CashFlowPointDto> sortedPoints = new ArrayList<>(map.values());
+
+        for (CashFlowPointDto point : sortedPoints) {
+            runningIncome = runningIncome.add(point.getIncomes());
+            runningExpense = runningExpense.add(point.getExpenses());
+
+            point.setIncomes(runningIncome);
+            point.setExpenses(runningExpense);
+        }
+
+        return sortedPoints;
+    }
+
+    public List<WalletBalanceByCategoryDto> getWalletsBalanceByCategoryDtoList(long userId) {
+        List<Wallet> wallets = walletService.getAllWallets(userId);
+        Map<WalletType, BigDecimal> amountByType = wallets.stream()
+                .collect(Collectors.groupingBy(
+                        Wallet::getType,
+                        Collectors.reducing(BigDecimal.ZERO, Wallet::getBalance, BigDecimal::add)
+                ));
+
+        return amountByType.entrySet().stream()
+                .map(entry -> new WalletBalanceByCategoryDto(
+                        entry.getKey().name(),
+                        entry.getKey().getDisplayName(),
+                        entry.getValue()
+                ))
+                .collect(Collectors.toList());
     }
 
 //    public FinancialDashboardDto getFinanceDashboard(long id) {
